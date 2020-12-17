@@ -21,34 +21,34 @@ int insort(struct node**head,int i,int e)
     q->data=e;
     return 1;
 }
-int delet(struct node**head,int i)
+int delet(struct node*head,int i)
 {
    int j=1;
    node*p,*q;
-   p=*head;
+   p=head;
    while(p->next&&i>j)
    {
        p=p->next;
        j++;
    }
-   if((p->next)||i<j)
+   if(!p)
     return 0;
    q=p->next;
    p->next=q->next;
    free(q);
    return 1;
 }
-int alldelet(struct node**head)
+int alldelet(struct node*head)
 {
     node*p,*q;
-    p=(*head)->next;
+    p=(head)->next;
     while(p)
     {
         q=p->next;
         free(p);
         p=q;
     }
-    (*head)->next=NULL;
+    (head)->next=NULL;
     return 1;
 }
 int main()
@@ -68,7 +68,8 @@ int main()
         p=q;
     }
    p->next=NULL;
-   insort(&head,3,99);
+   //insort(&head,3,999);
+   //alldelet(&head);
    printf("链表内容");
    for(node *p=head->next;p!=NULL;p=p->next)
     {
