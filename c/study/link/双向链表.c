@@ -14,6 +14,11 @@ int main()
     for(int i=1;i<=n;i++)
     {
         q=(node*)malloc(sizeof(node));
+        scanf("%d",&m);
+        q->data=m;
+        p->next=q;
+        p=q;
+       p->next->pr=p=p->pr->next;
 
     }
 }
