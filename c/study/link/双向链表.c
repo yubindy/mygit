@@ -1,4 +1,5 @@
 #include<stdio.h>
+#include<stdlinb.h>
 typedef struct node{
     int data;
     struct node*pr;
