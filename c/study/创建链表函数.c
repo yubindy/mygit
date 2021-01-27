@@ -23,6 +23,7 @@ struct ListNode *celebrate(struct ListNode *head, int n, int a[])
 void *delet_val(node *s, int n)
 {
     node *p,*q;
+    int b,c;
     int a = 0;
     p = (node *)malloc(sizeof(node));
     p->next = s;
