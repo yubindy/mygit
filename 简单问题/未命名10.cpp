@@ -1,21 +1,25 @@
-# include<stdio.h>
-int s;
-int f(int n)
-{ 
-	for(int i=1;i<n;i++)
-	 {
-	 	if(n%i==0)
-	 	 s+=i;
-	 }
-	 return s;
+#include<stdio.h>
+int nums[6]={1,7,3,6,5,6};
+int pivotIndex(int* nums, int numsSize){
+  int a,b,i;
+  a=0,b=0;
+  for(int j=1;j<numsSize;j++)
+    {
+       b+=nums[j];
+    }
+  if(nums[0]==b);
+   return 0;
+  for( i=1;i<numsSize-1;i++)
+  {
+    b-=nums[i];
+    a+=nums[i-1];
+    if(a==b)
+    return i;
+  }
+  return -1;
 }
 int main()
-{   int a;
-	int n,m; 
-	scanf("%d%d",&n,&m);
-    if(f(m)==n&&f(n)==m)
-	printf("YES");
-	else
-	printf("NO");
-	return 0;
+{
+	 printf("%d",pivotIndex(nums,6));
+	 return 0;
 }
