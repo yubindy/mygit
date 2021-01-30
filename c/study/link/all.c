@@ -8,7 +8,7 @@ typedef struct node
 void *head_celebrate(int n, int a[])
 {
     node *head, *p, *q;
-    p = (node *)malloc(sizeof(node));
+    p = (node*)malloc(sizeof(node));
     p->val = n;
     head = p;
     head->next = NULL;
