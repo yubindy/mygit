@@ -4,15 +4,16 @@
 #include <sys/types.h>
 #include <dirent.h>
 int main(int argc, char **argv)
-{
+{   int t=0;
     DIR *dir;
     struct dirent *ptr;
     char *path;
     dir = opendir(path = getcwd(NULL, 0));
-    printf("当前目录%s",path);
     while ((ptr = readdir(dir)) != NULL)
-    {   
-        printf("%s\n", ptr->d_name);
+     {
+        if ( ptr->d_name[0] == '.') //flag判断是否输出隐藏文件
+            continue;
+        printf("%10s", ptr->d_name);
     }
     closedir(dir);
     return 0;
