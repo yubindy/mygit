@@ -10,13 +10,14 @@
 #include <grp.h>
 #include <time.h>
 void play_single(char *name, int flag) //输出目录文件名字.
-void piay_l(char *path, char *name)    //解析文件详细属性
+void piay_l(int flag, char *name)    //解析文件详细属性
 void play_parameter(char *parameter, char *path) //解析参数，分别调用函数
 void play_R(char *path,int flag)  //递归输出
-{
-    play_l(path,flag,);
-    char **t;      
+{    char ***t;  
+    if(r=='l')
+    play_l(path,flag,**t);
     
+
 }
 void play_single(char *name, int flag) //输出目录文件名字.
 {
@@ -32,7 +33,7 @@ void play_single(char *name, int flag) //输出目录文件名字.
     }
     closedir(dir);
 }
-void piay_l(char *path, int flag,char a)    //解析文件详细属性
+void piay_l(int flag,char *path,char ***t)    //解析文件详细属性
 {
     struct passwd *pwd;
     struct group *grp;
@@ -154,11 +155,11 @@ void play_parameter(char *parameter, char *path) //解析参数，分别调用�
     case 11:
         play_l(0, path);           //-al
     case 110:
-         play_R(1,path)            //Rl
+         play_R(1,path,'l')            //Rl
     case 111:
-         play_R(0,path)            //Rla
+         play_R(0,path,'l')            //Rla
     case 101:
-         play_R(0,path)             //Ra
+         play_R(0,path,NULL)             //Ra
     }
 }
 int main(int argc, char **argv)
