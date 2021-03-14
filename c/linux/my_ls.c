@@ -11,31 +11,29 @@
 #include <fcntl.h>
 #include <limits.h>
 #include <errno.h>
+#include <assert.h>
 int play_l = 0;
 int play_a = 0;
 int play_R = 0;
-int play_i=0;
+int flag = 1;
 typedef struct
 {
     struct stat asd;
     struct dirent ptr;
 } infoma;
-void cmp(const void *a,const void *b)
-{
-    return strcpy(*(char*)a-*(char*)b);
-}
 void my_err(const char *err_string, int line)
 {
     fprintf(stderr, "ine:%d", line);
     perror(err_string);
-    exit(1);
+    exit(EXIT_FAILURE);
 }
 void file_info(char *path, infoma *file)
 {
     char buf_time[32];
     struct passwd *psd;
     struct group *grp;
-    char *jl = getcwd(NULL, 0);
+    char *qw = getcwd(NULL, 0);
+    assert(qw != NULL);
     chdir(path);
     if (S_ISLNK(file->asd.st_mode))
         printf("l");
@@ -107,7 +105,7 @@ void file_info(char *path, infoma *file)
     }
     if ((psd = getpwuid(file->asd.st_uid)) == NULL)
         my_err("getpwuid", __LINE__);
-    if ((grp = getgrgid(file->asd.st_gid) )== NULL)
+    if ((grp = getgrgid(file->asd.st_gid)) == NULL)
         my_err("getgrgid", __LINE__);
     printf("%4lu ", file->asd.st_nlink);
     printf("%-8s ", psd->pw_name);
@@ -116,38 +114,87 @@ void file_info(char *path, infoma *file)
     strcpy(buf_time, ctime(&file->asd.st_mtime));
     buf_time[strlen(buf_time) - 1] = '\0';
     printf("  %s", buf_time);
-    chdir(jl);
+    if (play_R != 1 || flag != 0)
+        chdir(qw);
+    free(qw);
 }
 void file_name(char *path) //目录解析文件名
 {
     DIR *dir;
     infoma wer;
     struct dirent *zea;
+    char b[30] = "";
+    char **a = (char**)malloc(sizeof(char *) * 256);
+    for (int i = 0; i < 256; i++)
+        a[i] =(char*)malloc(sizeof(char) * 50);
+    //char a[256][30];
     dir = opendir(path);
+    int t = 0;
+    char *o = getcwd(NULL, 0);
+    // if (strcmp(o, path) != 0)
+    // {
+    //     strcat(o, "/");
+    //     strcat(o, path);
+    // }
     if (play_R == 1)
-        printf("%s\n", path);
+    {
+        printf("当前目录%s", o);
+        if(strcmp(o,path)!=0)
+        printf("/%s\n",path);
+        else
+        printf("\n");
+        chdir(path);
+    }
     while ((zea = readdir(dir)) != NULL)
     {
         if (!play_a && zea->d_name[0] == '.')
             continue;
+        strcpy(a[t], zea->d_name);
+        t++;
+    }
+    free(o);
+    closedir(dir);
+    for (int i = 0; i < t - 1; i++)
+        for (int j = 0; j < t - 1 - i; j++)
+        {
+            if (strcmp(a[j], a[j + 1]) > 0)
+            {
+                strcpy(b, a[j + 1]);
+                b[strlen(a[j + 1])] = '\0';
+                strcpy(a[j + 1], a[j]);
+                a[j + 1][strlen(a[j])] = '\0';
+                strcpy(a[j], b);
+                a[j][strlen(b)] = '\0';
+            }
+        }
+    for (int i = 0; i < t; i++)
+    {
         if (play_l == 1)
         {
-            if (lstat(zea->d_name, &(wer.asd)) == -1)
-            {
-                printf("\n%s", zea->d_name);
+            if (lstat(a[i], &(wer.asd)) == -1)
+            {   
+                printf("\n%s", a[i]);
                 my_err("stat", __LINE__);
             }
-            file_info(zea->d_name, &wer);
+            file_info(a[i], &wer);
         }
-        printf(" %s\n", zea->d_name);
+        printf(" %s\n", a[i]);
     }
     if (play_R == 1)
     {
-        while ((zea = readdir(dir)) != NULL && (wer.asd.st_mode))
+        for (int i = 0; i < t; i++)
         {
-            file_name(zea->d_name);
+            if (strcmp(a[i], ".") == 0 || strcmp(a[i], "..") == 0)
+                continue;
+            if (lstat(a[i], &(wer.asd)) == -1)
+            {   
+                printf("\n%s", a[i]);
+                my_err("stat", __LINE__);
+            }
+            if (S_ISDIR(wer.asd.st_mode))
+                file_name(a[i]);
+            flag = t - i;
         }
-        closedir(dir);
     }
 }
 void file_can(char a[]) //解析参数
