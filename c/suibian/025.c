@@ -16,6 +16,9 @@ int play_l = 0;
 int play_a = 0;
 int play_R = 0;
 int flag = 1;
+int jk = 4096;
+int yu = 1;
+int we = 0;
 typedef struct
 {
     struct stat asd;
@@ -118,16 +121,18 @@ void file_info(char *path, infoma *file)
         chdir(qw);
     free(qw);
 }
-void file_name(char *path) //目录解析文件名
+int cmp(const void *a, const void *b)
+{
+    char *c = *(char **)a;
+    char *d = *(char **)b;
+    return strcmp(c, d);
+}
+void file_name(const char *path) //目录解析文件名
 {
     DIR *dir;
     infoma wer;
     struct dirent *zea;
-    char b[30] = "";
-    char **a = (char**)malloc(sizeof(char *) * 256);
-    for (int i = 0; i < 256; i++)
-        a[i] =(char*)malloc(sizeof(char) * 50);
-    //char a[256][30];
+      char **a = (char **)malloc(sizeof(char *) * 1024);
     dir = opendir(path);
     int t = 0;
     char *o = getcwd(NULL, 0);
@@ -138,41 +143,38 @@ void file_name(char *path) //目录解析文件名
     // }
     if (play_R == 1)
     {
-        printf("当前目录%s", o);
-        if(strcmp(o,path)!=0)
-        printf("/%s\n",path);
+        if (yu == 1)
+        {
+            printf("当前目录%s", path);
+            yu--;
+        }
         else
-        printf("\n");
+            printf("当前目录%s", o);
+        if (strcmp(o, path) != 0)
+            printf("/%s\n", path);
+        else
+            printf("\n");
         chdir(path);
     }
+    free(o);
     while ((zea = readdir(dir)) != NULL)
     {
         if (!play_a && zea->d_name[0] == '.')
             continue;
+         a[t] = (char *)malloc(strlen(zea->d_name) + 1);
+        assert(a[t] != NULL);
         strcpy(a[t], zea->d_name);
         t++;
     }
-    free(o);
     closedir(dir);
-    for (int i = 0; i < t - 1; i++)
-        for (int j = 0; j < t - 1 - i; j++)
-        {
-            if (strcmp(a[j], a[j + 1]) > 0)
-            {
-                strcpy(b, a[j + 1]);
-                b[strlen(a[j + 1])] = '\0';
-                strcpy(a[j + 1], a[j]);
-                a[j + 1][strlen(a[j])] = '\0';
-                strcpy(a[j], b);
-                a[j][strlen(b)] = '\0';
-            }
-        }
+    qsort(a, t, sizeof(char *), cmp);
+
     for (int i = 0; i < t; i++)
     {
         if (play_l == 1)
         {
             if (lstat(a[i], &(wer.asd)) == -1)
-            {   
+            {
                 printf("\n%s", a[i]);
                 my_err("stat", __LINE__);
             }
@@ -184,20 +186,30 @@ void file_name(char *path) //目录解析文件名
     {
         for (int i = 0; i < t; i++)
         {
+
             if (strcmp(a[i], ".") == 0 || strcmp(a[i], "..") == 0)
                 continue;
             if (lstat(a[i], &(wer.asd)) == -1)
-            {   
-                printf("\n%s", a[i]);
-                my_err("stat", __LINE__);
+            {
+                while (jk--)
+                {
+                    chdir("../");
+                    if (lstat(a[i], &(wer.asd)) != -1)
+                        break;
+                }
             }
             if (S_ISDIR(wer.asd.st_mode))
                 file_name(a[i]);
             flag = t - i;
         }
+                for (int i = 0; i < t; i++)
+            {
+                free(a[t]);
+            }
+             free(a);
     }
 }
-void file_can(char a[]) //解析参数
+void file_can(const char a[]) //解析参数
 {
     for (size_t i = 0; i < strlen(a); i++)
     {
@@ -241,7 +253,10 @@ int main(int argc, char **argv)
     if (path == NULL)
     {
         path = getcwd(NULL, 0);
+        we = 1;
     }
     file_can(a);
     file_name(path);
+    if (we == 1)
+        free(path);
 }
