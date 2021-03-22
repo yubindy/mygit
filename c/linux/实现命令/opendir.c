@@ -11,8 +11,8 @@ int main(int argc, char **argv)
     dir = opendir(path = getcwd(NULL, 0));
     while ((ptr = readdir(dir)) != NULL)
      {
-        if ( ptr->d_name[0] == '.') //flag判断是否输出隐藏文件
-            continue;
+        if (1&& ptr->d_name[0] == '.') //flag判断是否输出隐藏文件
+           continue;
         printf("%10s", ptr->d_name);
     }
     closedir(dir);

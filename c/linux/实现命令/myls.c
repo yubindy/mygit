@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -9,15 +10,21 @@
 #include <pwd.h>
 #include <grp.h>
 #include <time.h>
-void play_single(char *name, int flag) //输出目录文件名字.
-void piay_l(int flag, char *name)    //解析文件详细属性
-void play_parameter(char *parameter, char *path) //解析参数，分别调用函数
-void play_R(char *path,int flag)  //递归输出
-{    char ***t;  
-    if(r=='l')
-    play_l(path,flag,**t);
-    
+void play_single(char *name, int flag);               //输出目录文件名字.
+void play_l(int flag, char *path, char **t, int *n);  //解析文件详细属性
+void play_parameter(char *parameter, char *path);     //解析参数，分别调用函数
+void play_R(char *path, int flag, char r);            //递归输出
+void play_lm(int flag, char *path, char **t, int *n); //递归输出无l,输出文件名字
 
+void play_R(char *path, int flag, char r) //递归输出
+{
+    char **t;
+    int n = 0;
+    strcpy(*t, path);
+    if (r == 'l')
+        return play_l(flag, *(t++), (t + n), &n);
+    else
+        return play_lm(flag, *(t++), (t + n), &n);
 }
 void play_single(char *name, int flag) //输出目录文件名字.
 {
@@ -33,22 +40,52 @@ void play_single(char *name, int flag) //输出目录文件名字.
     }
     closedir(dir);
 }
-void piay_l(int flag,char *path,char ***t)    //解析文件详细属性
+void play_lm(int flag, char *path, char **t, int *n)
 {
     struct passwd *pwd;
     struct group *grp;
     struct stat buf;
     DIR *dir;
-    chdir(path);    //切换工作目录，避免从目录解析文件路径
+    chdir(path);
     dir = opendir(path);
-    struct dirent *ptr; 
-    while ((ptr = readdir(dir) != NULL))
+    struct dirent *ptr;
+    while ((ptr = readdir(dir)) != NULL)
     {
-        if (flag && ptr->d_name[0] == '.')    
+        if (flag && ptr->d_name[0] == '.')
             continue;
         if (lstat(ptr->d_name, &buf) == -1)
             exit(1);
         char buf_time[32];
+        if (t != NULL && S_ISDIR(buf.st_mode)) //若为目录，则将目录路径存入
+        {
+            strcpy((t + *n), ptr->d_name);
+            (*n)++;
+        }
+        printf("%20s", ptr->d_name);
+        closedir(dir);
+    }
+}
+void play_l(int flag, char *path, char **t, int *n) //解析文件详细属性
+{
+    struct passwd *pwd;
+    struct group *grp;
+    struct stat buf;
+    DIR *dir;
+    chdir(path); //切换工作目录，避免从目录解析文件路径
+    dir = opendir(getcwd(NULL, 0));
+    struct dirent *ptr;
+    while ((ptr = readdir(dir)) != NULL)
+    {
+        if (flag && ptr->d_name[0] == '.')
+            continue;
+        if (lstat(ptr->d_name, &buf) == -1)
+            exit(1);
+        char buf_time[32];
+        if (t != NULL && S_ISDIR(buf.st_mode)) //若为目录，则将目录路径存入
+        {
+            strcpy((t + *n), ptr->d_name);
+            (*n)++;
+        }
         if (S_ISLNK(buf.st_mode)) //文件类型
             printf("l");
         else if (S_ISREG(buf.st_mode))
@@ -61,8 +98,6 @@ void piay_l(int flag,char *path,char ***t)    //解析文件详细属性
             printf("b");
         else if (S_ISFIFO(buf.st_mode))
             printf("f");
-        else if (S_ISSOCK(buf.st_mode))
-            printf("s");
         //采取二进制掩码方式
         if (buf.st_mode & S_IRUSR) //所有者
             printf("r");
@@ -131,7 +166,8 @@ void piay_l(int flag,char *path,char ***t)    //解析文件详细属性
 void play_parameter(char *parameter, char *path) //解析参数，分别调用函数
 {
     int nums = 0;
-    for (int i = 0; i < strlen(parameter); i++)
+    int t = strlen(parameter);
+    for (int i = 0; i < t; i++)
     {
         if (parameter[i] == 'a')
             nums += 1;
@@ -139,33 +175,47 @@ void play_parameter(char *parameter, char *path) //解析参数，分别调用�
             nums += 10;
         else if (parameter[i] == 'R')
             nums += 100;
+        else if (parameter[i] == '\0')
+            nums = 0;
         else
         {
             printf("暂无该参数解析\n");
             exit(1);
         }
     }
-    switch (nums)             //此处函数调用1或0,针对是否含有a
+    switch (nums) //此处函数调用1或0,针对是否含有a
     {
     case 0: //无参数
         play_single(path, 1);
-    case 1： play_single(path, 0) //-a
-        case 10:
-        play_l(1, path);           //-l
+        break;
+    case 1:
+        play_single(path, 0); //-a
+        break;
+    case 10:
+        play_l(1, path, NULL, 0); //-l
+        break;
     case 11:
-        play_l(0, path);           //-al
+        play_l(0, path, NULL, 0); //-al
+        break;
+    case 100:
+        play_R(1, path, 'a'); //R
+        break;
     case 110:
-         play_R(1,path,'l')            //Rl
+        play_R(1, path, 'l'); //Rl
+        break;
     case 111:
-         play_R(0,path,'l')            //Rla
+        play_R(0, path, 'l'); //Rla
+        break;
     case 101:
-         play_R(0,path,NULL)             //Ra
+        play_R(0, path, 'a'); //Ra
     }
 }
 int main(int argc, char **argv)
 {
-    char *a, *path;
-    int i, j, t = 0, flag = 0;
+    char a[8];
+    char *path;
+    int i, j;
+    int t = 0, flag = 0;
     for (i = 1; i < argc; i++)
     {
         if (*argv[i] == '-') //识别参数
@@ -176,9 +226,13 @@ int main(int argc, char **argv)
                 t++;
             }
         }
-        if (argc == 1 || *argv[i] == '.') //获得工作目录
+        if (*argv[i] == '.') //获得工作目录
         {
             path = getcwd(NULL, 0);
         }
     }
+    if (argc == 1)
+        path = getcwd(NULL, 0);
+    play_parameter(a, path);
     return 0;
+}
