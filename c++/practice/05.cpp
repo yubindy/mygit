@@ -7,15 +7,18 @@ int main()
 {
     string s;
     vector<string> t;
+    int i=0;
     while(cin>>s)
     {   
         for(auto &c:s)
         c=toupper(c);
         t.push_back(s);
-    }
-    for(int i=0;i<t.size();i++)
-    {
         cout<<t[i]<<endl;
+        i++;
     }
+    // for(int i=0;i<t.size();i++)
+    // {
+    //     cout<<t[i]<<endl;
+    // }
     return 0;
 }

@@ -1,238 +1,262 @@
 #include <stdio.h>
 #include <string.h>
-#include <stdlib.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <fcntl.h>
+#include <time.h>
 #include <unistd.h>
 #include <dirent.h>
-#include <errno.h>
-#include <pwd.h>
 #include <grp.h>
-#include <time.h>
-void play_single(char *name, int flag);               //输出目录文件名字.
-void play_l(int flag, char *path, char **t, int *n);  //解析文件详细属性
-void play_parameter(char *parameter, char *path);     //解析参数，分别调用函数
-void play_R(char *path, int flag, char r);            //递归输出
-void play_lm(int flag, char *path, char **t, int *n); //递归输出无l,输出文件名字
-
-void play_R(char *path, int flag, char r) //递归输出
+#include <pwd.h>
+#include <stdlib.h>
+#include <fcntl.h>
+#include <limits.h>
+#include <errno.h>
+#include <assert.h>
+int play_l = 0;
+int play_a = 0;
+int play_R = 0;
+int flag = 1;
+int jk = 4096;
+int yu = 1;
+int we = 0;
+typedef struct
 {
-    char **t;
-    int n = 0;
-    strcpy(*t, path);
-    if (r == 'l')
-        return play_l(flag, *(t++), (t + n), &n);
-    else
-        return play_lm(flag, *(t++), (t + n), &n);
+    struct stat asd;
+    struct dirent ptr;
+} infoma;
+void my_err(const char *err_string, int line)
+{
+    fprintf(stderr, "ine:%d", line);
+    perror(err_string);
+    exit(EXIT_FAILURE);
 }
-void play_single(char *name, int flag) //输出目录文件名字.
+void file_info(char *path, infoma *file)
+{
+    char buf_time[32];
+    struct passwd *psd;
+    struct group *grp;
+    char *qw = getcwd(NULL, 0);
+    assert(qw != NULL);
+    chdir(path);
+    if (S_ISLNK(file->asd.st_mode))
+        printf("l");
+    else if (S_ISREG(file->asd.st_mode))
+        printf("-");
+    else if (S_ISDIR(file->asd.st_mode))
+        printf("d");
+    else if (S_ISCHR(file->asd.st_mode))
+        printf("c");
+    else if (S_ISBLK(file->asd.st_mode))
+        printf("b");
+    else if (S_ISFIFO(file->asd.st_mode))
+        printf("f");
+    // else if (S_ISSOCK(file->asd.st_mode))
+    //    printf("a");
+    if (file->asd.st_mode & S_IRUSR) //所有者
+        printf("r");
+    else
+    {
+        printf("-");
+    }
+    if (file->asd.st_mode & S_IWUSR)
+        printf("w");
+    else
+    {
+        printf("-");
+    }
+    if (file->asd.st_mode & S_IXUSR)
+        printf("x");
+    else
+    {
+        printf("-");
+    }
+    if (file->asd.st_mode & S_IRGRP) //所在组
+        printf("r");
+    else
+    {
+        printf("-");
+    }
+    if (file->asd.st_mode & S_IWGRP)
+        printf("w");
+    else
+    {
+        printf("-");
+    }
+    if (file->asd.st_mode & S_IXGRP)
+        printf("x");
+    else
+    {
+        printf("-");
+    }
+    if (file->asd.st_mode & S_IROTH) //其他用户
+        printf("r");
+    else
+    {
+        printf("-");
+    }
+    if (file->asd.st_mode & S_IWOTH)
+        printf("w");
+    else
+    {
+        printf("-");
+    }
+    if (file->asd.st_mode & S_IXOTH)
+        printf("x");
+    else
+    {
+        printf("-");
+    }
+    if ((psd = getpwuid(file->asd.st_uid)) == NULL)
+        my_err("getpwuid", __LINE__);
+    if ((grp = getgrgid(file->asd.st_gid)) == NULL)
+        my_err("getgrgid", __LINE__);
+    printf("%4lu ", file->asd.st_nlink);
+    printf("%-8s ", psd->pw_name);
+    printf("%-8s", grp->gr_name);
+    printf("%6ld", file->asd.st_size);
+    strcpy(buf_time, ctime(&file->asd.st_mtime));
+    buf_time[strlen(buf_time) - 1] = '\0';
+    printf("  %s", buf_time);
+    if (play_R != 1 || flag != 0)
+        chdir(qw);
+    free(qw);
+}
+int cmp(const void *a, const void *b)
+{
+    char *c = *(char **)a;
+    char *d = *(char **)b;
+    return strcmp(c, d);
+}
+void file_name(const char *path) //目录解析文件名
 {
     DIR *dir;
-    struct dirent *ptr;
-    dir = opendir(name);
-    while ((ptr = readdir(dir)) != NULL)
+    infoma wer;
+    struct dirent *zea;
+    char **a = (char **)malloc(sizeof(char *) * 1024 * 4);
+    dir = opendir(path);
+    int t = 0;
+    char *o = getcwd(NULL, 0);
+    // if (strcmp(o, path) != 0)
+    // {
+    //     strcat(o, "/");
+    //     strcat(o, path);
+    // }
+    if (play_R == 1)
     {
-        if (flag && ptr->d_name[0] == '.')
-            continue;
+        if (yu == 1)
+        {
+            printf("当前目录%s", path);
+            yu--;
+        }
         else
-            printf("%20s", ptr->d_name);
+            printf("当前目录%s", o);
+        if (strcmp(o, path) != 0)
+            printf("/%s\n", path);
+        else
+            printf("\n");
+        chdir(path);
+    }
+    free(o);
+    while ((zea = readdir(dir)) != NULL)
+    {
+        if (!play_a && zea->d_name[0] == '.')
+            continue;
+        a[t] = (char *)malloc(strlen(zea->d_name) + 1);
+        assert(a[t] != NULL);
+        strcpy(a[t], zea->d_name);
+        t++;
     }
     closedir(dir);
-}
-void play_lm(int flag, char *path, char **t, int *n)
-{
-    struct passwd *pwd;
-    struct group *grp;
-    struct stat buf;
-    DIR *dir;
-    chdir(path);
-    dir = opendir(path);
-    struct dirent *ptr;
-    while ((ptr = readdir(dir)) != NULL)
-    {
-        if (flag && ptr->d_name[0] == '.')
-            continue;
-        if (lstat(ptr->d_name, &buf) == -1)
-            exit(1);
-        char buf_time[32];
-        if (t != NULL && S_ISDIR(buf.st_mode)) //若为目录，则将目录路径存入
-        {
-            strcpy((t + *n), ptr->d_name);
-            (*n)++;
-        }
-        printf("%20s", ptr->d_name);
-        closedir(dir);
-    }
-}
-void play_l(int flag, char *path, char **t, int *n) //解析文件详细属性
-{
-    struct passwd *pwd;
-    struct group *grp;
-    struct stat buf;
-    DIR *dir;
-    chdir(path); //切换工作目录，避免从目录解析文件路径
-    dir = opendir(getcwd(NULL, 0));
-    struct dirent *ptr;
-    while ((ptr = readdir(dir)) != NULL)
-    {
-        if (flag && ptr->d_name[0] == '.')
-            continue;
-        if (lstat(ptr->d_name, &buf) == -1)
-            exit(1);
-        char buf_time[32];
-        if (t != NULL && S_ISDIR(buf.st_mode)) //若为目录，则将目录路径存入
-        {
-            strcpy((t + *n), ptr->d_name);
-            (*n)++;
-        }
-        if (S_ISLNK(buf.st_mode)) //文件类型
-            printf("l");
-        else if (S_ISREG(buf.st_mode))
-            printf("-");
-        else if (S_ISDIR(buf.st_mode))
-            printf("d");
-        else if (S_ISCHR(buf.st_mode))
-            printf("c");
-        else if (S_ISBLK(buf.st_mode))
-            printf("b");
-        else if (S_ISFIFO(buf.st_mode))
-            printf("f");
-        //采取二进制掩码方式
-        if (buf.st_mode & S_IRUSR) //所有者
-            printf("r");
-        else
-        {
-            printf("-");
-        }
-        if (buf.st_mode & S_IWUSR)
-            printf("w");
-        else
-        {
-            printf("-");
-        }
-        if (buf.st_mode & S_IXUSR)
-            printf("x");
-        else
-        {
-            printf("-");
-        }
-        if (buf.st_mode & S_IRGRP) //所在组
-            printf("r");
-        else
-        {
-            printf("-");
-        }
-        if (buf.st_mode & S_IWGRP)
-            printf("w");
-        else
-        {
-            printf("-");
-        }
-        if (buf.st_mode & S_IXGRP)
-            printf("x");
-        else
-        {
-            printf("-");
-        }
-        if (buf.st_mode & S_IROTH) //其他用户
-            printf("r");
-        else
-        {
-            printf("-");
-        }
-        if (buf.st_mode & S_IWOTH)
-            printf("w");
-        else
-        {
-            printf("-");
-        }
-        if (buf.st_mode & S_IXOTH)
-            printf("x");
-        else
-        {
-            printf("-");
-        }
-        pwd = getpwuid(buf.st_uid);
-        grp = getgrgid(buf.st_gid);
-        printf(" %lu ", buf.st_nlink);
-        printf("%-8s%-8s ", pwd->pw_name, grp->gr_name);
-        printf("%6ld", buf.st_size);
-        strncpy(buf_time, ctime(&buf.st_mtime), strlen(ctime(&buf.st_mtime)) - 1);
-        printf("   %s", buf_time);
-        printf("%s\n", ptr->d_name);
-    }
-}
-void play_parameter(char *parameter, char *path) //解析参数，分别调用函数
-{
-    int nums = 0;
-    int t = strlen(parameter);
+    qsort(a, t, sizeof(char *), cmp);
+
     for (int i = 0; i < t; i++)
     {
-        if (parameter[i] == 'a')
-            nums += 1;
-        else if (parameter[i] == 'l')
-            nums += 10;
-        else if (parameter[i] == 'R')
-            nums += 100;
-        else if (parameter[i] == '\0')
-            nums = 0;
-        else
+        if (play_l == 1)
         {
-            printf("暂无该参数解析\n");
+            if (lstat(a[i], &(wer.asd)) == -1)
+            {
+                printf("\n%s", a[i]);
+                my_err("stat", __LINE__);
+            }
+            file_info(a[i], &wer);
+        }
+        printf(" %s\n", a[i]);
+    }
+    if (play_R == 1)
+    {
+        for (int i = 0; i < t; i++)
+        {
+
+            if (strcmp(a[i], ".") == 0 || strcmp(a[i], "..") == 0)
+                continue;
+            if (lstat(a[i], &(wer.asd)) == -1)
+            {
+                while (jk--)
+                {
+                    chdir("../");
+                    if (lstat(a[i], &(wer.asd)) != -1)
+                        break;
+                }
+            }
+            if (S_ISDIR(wer.asd.st_mode))
+                file_name(a[i]);
+            flag = t - i;
+        }
+        for (int i = 0; i < t; i++)
+        {
+            free(a[t]);
+        }
+        free(a);
+     }
+}
+void file_can(const char a[]) //解析参数
+{
+    for (size_t i = 0; i < strlen(a); i++)
+    {
+        switch (a[i])
+        {
+        case 'a':
+            play_a = 1;
+            continue;
+        case 'l':
+            play_l = 1;
+            continue;
+        case 'R':
+            play_R = 1;
+            continue;
+        default:
+            printf("暂无%c参数", a[i]);
             exit(1);
         }
-    }
-    switch (nums) //此处函数调用1或0,针对是否含有a
-    {
-    case 0: //无参数
-        play_single(path, 1);
-        break;
-    case 1:
-        play_single(path, 0); //-a
-        break;
-    case 10:
-        play_l(1, path, NULL, 0); //-l
-        break;
-    case 11:
-        play_l(0, path, NULL, 0); //-al
-        break;
-    case 100:
-        play_R(1, path, 'a'); //R
-        break;
-    case 110:
-        play_R(1, path, 'l'); //Rl
-        break;
-    case 111:
-        play_R(0, path, 'l'); //Rla
-        break;
-    case 101:
-        play_R(0, path, 'a'); //Ra
     }
 }
 int main(int argc, char **argv)
 {
-    char a[8];
-    char *path;
-    int i, j;
-    int t = 0, flag = 0;
-    for (i = 1; i < argc; i++)
+    char a[7] = "";
+    char *path = NULL;
+    int t = 0;
+    for (int i = 1; i < argc; i++)
     {
-        if (*argv[i] == '-') //识别参数
+        if (argv[i][0] == '-')
         {
-            for (j = 1; j < strlen(argv[i]); j++)
+            for (unsigned int j = 1; j < strlen(argv[i]); j++)
             {
                 a[t] = argv[i][j];
                 t++;
             }
         }
-        if (*argv[i] == '.') //获得工作目录
+        else
         {
-            path = getcwd(NULL, 0);
+            path = argv[i];
         }
     }
-    if (argc == 1)
+    if (path == NULL)
+    {
         path = getcwd(NULL, 0);
-    play_parameter(a, path);
-    return 0;
+        we = 1;
+    }
+    file_can(a);
+    file_name(path);
+    if (we == 1)
+        free(path);
 }

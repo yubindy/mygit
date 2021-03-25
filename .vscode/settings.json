@@ -3,7 +3,9 @@
     "files.associations": {
         "random": "c",
         "math.h": "c",
-        "ostream": "cpp"
+        "ostream": "cpp",
+        "iostream": "cpp",
+        "vector": "cpp"
     },
     "code-runner.executorMap": {
         "javascript": "node",

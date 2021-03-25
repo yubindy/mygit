@@ -132,7 +132,7 @@ void file_name(const char *path) //目录解析文件名
     DIR *dir;
     infoma wer;
     struct dirent *zea;
-      char **a = (char **)malloc(sizeof(char *) * 1024);
+    char **a = (char **)malloc(sizeof(char *) * 1024 * 4);
     dir = opendir(path);
     int t = 0;
     char *o = getcwd(NULL, 0);
@@ -161,7 +161,7 @@ void file_name(const char *path) //目录解析文件名
     {
         if (!play_a && zea->d_name[0] == '.')
             continue;
-         a[t] = (char *)malloc(strlen(zea->d_name) + 1);
+        a[t] = (char *)malloc(strlen(zea->d_name) + 1);
         assert(a[t] != NULL);
         strcpy(a[t], zea->d_name);
         t++;
@@ -202,12 +202,12 @@ void file_name(const char *path) //目录解析文件名
                 file_name(a[i]);
             flag = t - i;
         }
-                for (int i = 0; i < t; i++)
-            {
-                free(a[t]);
-            }
-             free(a);
-    }
+        for (int i = 0; i < t; i++)
+        {
+            free(a[t]);
+        }
+        free(a);
+     }
 }
 void file_can(const char a[]) //解析参数
 {
