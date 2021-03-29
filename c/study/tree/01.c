@@ -5,23 +5,22 @@ typedef struct treenode
     char val;
     struct treenode *right;
     struct treenode *left;
-}tree;
+} node, *tree;
 void tree_celebrate(tree *s)
 {
     char t;
     scanf("%c", &t);
     if (t == '#')
-         =NULL;
+        *s = NULL;
     else
-    {
-        tree *s;
-        s= (tree *)malloc(sizeof(tree));
-        s->val = t;
-        tree_celebrate(s->left);
-        tree_celebrate(s->right);
+    { 
+        *s = (tree )malloc(sizeof(tree));
+        (*s)->val = t;
+        tree_celebrate(&(*s)->left);
+        tree_celebrate(&(*s)->right);
     }
 }
-void tree_visit(tree *head)
+void tree_visit(tree head)
 {
     if (head)
     {
@@ -32,8 +31,10 @@ void tree_visit(tree *head)
 }
 int main()
 {
-    tree *t;
-    tree_celebrate(t);
+    tree t;
+    tree_celebrate(&t);
+    printf("\n");
     tree_visit(t);
     return 0;
 }
+//测试用例 ab#d##c##
