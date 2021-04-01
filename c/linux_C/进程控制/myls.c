@@ -12,6 +12,7 @@
 #include <limits.h>
 #include <errno.h>
 #include <assert.h>
+#include<signal.h>
 int play_l = 0;
 int play_a = 0;
 int play_R = 0;
@@ -235,6 +236,7 @@ int main(int argc, char **argv)
     char a[7] = "";
     char *path = NULL;
     int t = 0;
+    signal(SIGINT,SIG_IGN);
     for (int i = 1; i < argc; i++)
     {
         if (argv[i][0] == '-')

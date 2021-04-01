@@ -1,9 +1,13 @@
-#include<iostream>
-#include<vector>
+#include <iostream>
+#include <vector>
 using namespace std;
 int main()
 {
   vector<int> t(10);
-  int t=0;
- 
+  for (int i = 0; i < 10; i++)
+  {
+    t[i] = i * 10;
+    cout<<" "<<t[i]<<endl;
+  }
+  return 0;
 }

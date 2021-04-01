@@ -39,7 +39,7 @@ void explain_can(char *buf, int *nums, char can[100][256])
     {
         if (buf[i] == ' ')
         {
-            //can[*nums][j] = '\n';
+
             (*nums)++;
             j = 0;
         }
@@ -68,6 +68,7 @@ void do_can(int nums, char can[100][256])
             if (i == nums - 1)
             {
                 background = 1;
+                nums--;
                 ar[i] = NULL;
                 break;
             }
@@ -147,6 +148,8 @@ void do_can(int nums, char can[100][256])
                 printf("%s command cant not find\n", ar[0]);
                 exit(0);
             }
+            execvp(ar[0], ar);
+            exit(0);
         }
         break;
     case 1:
@@ -160,8 +163,10 @@ void do_can(int nums, char can[100][256])
             fd = open(file, O_RDWR | O_CREAT | O_TRUNC, 0771);
             dup2(fd, 1); //此处的1代表标准输入
             execvp(ar[0], ar);
+            exit(0);
+            break;
         }
-        break;
+
     case 2:
         if (pid == 0)
         {
@@ -173,8 +178,10 @@ void do_can(int nums, char can[100][256])
             fd = open(file, O_RDONLY, 0771);
             dup2(fd, 0); //此处的0代表标准输出
             execvp(ar[0], ar);
+            exit(0);
+            break;
         }
-        break;
+
     case 3:
         if (pid == 0)
         {
@@ -193,7 +200,7 @@ void do_can(int nums, char can[100][256])
                     printf("%s:command not found\n", ar[0]);
                     exit(0);
                 }
-                fd2 = open("/tmp/middlefile", O_WRONLY | O_CREAT | O_TRUNC, 0771);
+                fd2 = open("/tmp/middlefile", O_WRONLY | O_CREAT | O_TRUNC, 0771); //建立中间文件，管道命令执之前的操作
                 dup2(fd2, 1);
                 execvp(ar[0], ar);
                 exit(0);
@@ -210,21 +217,20 @@ void do_can(int nums, char can[100][256])
                 if (remove("/tmp/middlefile") == -1)
                     printf("remove error");
                 exit(0);
+                break;
             }
         }
-        break;
     default:
         break;
     }
     if (background == 1)
     {
-        printf("process is %d", pid);
+        printf("Background execution,process is %d", pid);
         return;
     }
     if (waitpid(pid, &status, 0) == -1)
         printf("wait fro chlid process error\n");
 }
-
 int find_can(char *command)
 {
     DIR *dir;
@@ -254,21 +260,24 @@ int find_can(char *command)
 int main()
 {
     char *buf = NULL;
-    char can[100][256];
     int nums = 1;
     buf = (char *)malloc(sizeof(char) * 256);
     while (1)
     {
-        buf = (char *)malloc(sizeof(char) * 256);
-        printf("my_shell$$");
+        char can[100][256];
+        memset(buf, 0, 256);
+        //buf="";
+        printf("*************\n");
+        printf("*my_shell$$");
         get_can(buf);
         if (strcmp(buf, "exit") == 0 || strcmp(buf, "logout") == 0)
             break;
         explain_can(buf, &nums, can);
-        free(buf);
-        buf = NULL;
         do_can(nums, can);
-        printf("\n");
+        //printf("\n");
+        nums = 1;
     }
+    free(buf);
+    buf = NULL;
     exit(0);
 }
