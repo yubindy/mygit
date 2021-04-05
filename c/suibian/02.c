@@ -1,31 +1,27 @@
 #include<stdio.h>
 #include<string.h>
-int lengthOfLongestSubstring(char * s){
-   int n=strlen(s);
-   if(n==0||n==1)
-   return n;
-   int t=0,b=0;
-   for(int i=0;i<n-1;i++)
-   { if(b<t)
-     b=t;
-     t=0;
-     int a[200]={0};
-    for(int j=i;j<n;j++)
-    {   
-        if(a[s[j]- '!']==0)
-        {
-        a[s[j]-'!']++;
-        t++;
-        }
-       else
-       break;
-    }
-   }
-  return b;
+#include<math.h>
+int trap(int height[4], int heightSize){
+    int a=0,b=0,n=0;
+    int s=0;
+ for(int i=1;i<heightSize-1;i++)
+ { 
+   a=height[i-1],b=height[i+1];
+   n=height[i];
+   for(int j=i+1;j<heightSize;j++)
+   b=b<height[j]?height[j]:b;
+   for(int j=i-1;j>=0;j--)
+   a=a<height[j]?height[j]:a;
+   //printf("%d\n",a);
+   if(fmin(a,b)-n>=0)
+   s=s+fmin(a,b)-n;
+ }
+ return s;
 }
 int main()
 {
-    char s[10]={"ack!c"};
-    printf("%d",lengthOfLongestSubstring(s));
+    int a[]={2,1,0,2};
+    int t=sizeof(a)/4;
+    printf("%d",trap(a,t));
     return 0;
 }
