@@ -1,13 +1,31 @@
-#include<stdio.h>
+#include <stdio.h>
+
+int check1()
+{
+    int i = 1;
+    return (*(char *)&i);
+}
+
+int check2()
+{
+    union
+    {
+        int i;
+        char c;
+    }un;
+    un.i = 1;
+    return un.c;
+}
+
 int main()
 {
-    int a,b,s=0;
-    scanf("%d%d",&a,&b);
-    for(int i=a+1;i<b;i++)
+    if(check1())
     {
-        if(i%7==2)
-        s+=i;
+        printf("小端\n");
     }
-    printf("%d",s);
+    else
+    {
+        printf("大端\n");
+    }
     return 0;
 }

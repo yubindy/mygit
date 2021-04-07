@@ -1,40 +1,53 @@
 #include <stdio.h>
-#include <stdio.h>
+#include <stdlib.h>
 typedef struct treenode
 {
     char val;
-    struct treenode *right;
     struct treenode *left;
+    struct treenode *right;
 } node, *tree;
-void tree_celebrate(tree *s)
+void celebrate(tree *t)
 {
-    char t;
-    scanf("%c", &t);
-    if (t == '#')
-        *s = NULL;
+    char s;
+    scanf("%c", &s);
+    if (s == '#')
+        *t = NULL;
     else
-    { 
-        *s = (tree )malloc(sizeof(tree));
-        (*s)->val = t;
-        tree_celebrate(&(*s)->left);
-        tree_celebrate(&(*s)->right);
+    {
+        *t = (tree)malloc(sizeof(node));
+        (*t)->val = s;
+        celebrate(&(*t)->left);
+        celebrate(&(*t)->right);
     }
 }
-void tree_visit(tree head)
+void visit(tree t)
 {
-    if (head)
-    {
-        printf("%c ", head->val);
-        tree_visit(head->left);
-        tree_visit(head->right);
-    }
+    if (t == NULL)
+        return;
+    printf("%c", t->val);
+    visit(t->left);
+    visit(t->right);
+}
+int deep(tree t)
+{
+    int i = 0, j = 0;
+    if(!t)
+    return 0;
+    if(t->left)
+    i=deep(t->left);
+    else
+    i=0;
+    if(t->right)
+    j=deep(t->right);
+    else
+    j=0;
+    return i>j?i+1:j+1;
 }
 int main()
 {
     tree t;
-    tree_celebrate(&t);
-    printf("\n");
-    tree_visit(t);
+    celebrate(&t);
+    visit(t);
+    printf("树的深度是%d",deep(t));
     return 0;
 }
-//测试用例 ab#d##c##

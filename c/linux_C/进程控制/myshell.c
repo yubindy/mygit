@@ -53,7 +53,7 @@ void explain_can(char *buf, int *nums, char can[100][256])
 }
 void do_can(int nums, char can[100][256])
 {
-    char *ar[nums + 1];
+    char* ar[nums + 1];
     char *arnext[nums + 1];
     char *file;
     int flag = 0;
@@ -274,8 +274,8 @@ int main()
             break;
         explain_can(buf, &nums, can);
         do_can(nums, can);
-        //printf("\n");
         nums = 1;
+        printf("*************\n\n");
     }
     free(buf);
     buf = NULL;
