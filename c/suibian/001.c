@@ -1,31 +1,42 @@
-#include <stdio.h>
-
-int check1()
-{
-    int i = 1;
-    return (*(char *)&i);
-}
-
-int check2()
-{
-    union
-    {
-        int i;
-        char c;
-    }un;
-    un.i = 1;
-    return un.c;
-}
-
+#include<stdio.h>
 int main()
 {
-    if(check1())
-    {
-        printf("小端\n");
-    }
-    else
-    {
-        printf("大端\n");
-    }
-    return 0;
+     int t=0;
+     scanf("%d",&t);
+     int x;
+     for(int i=0;i<t;i++)
+     {  
+        x=i+1;
+        while(x<t)
+        {
+        x++; 
+        printf(" ");
+        }
+         printf("*");
+         for(int j=0;j<2*i-1;j++)
+         {
+         printf("+");
+         if(j==2*i-2)
+         printf("*");
+         }
+         printf("\n");
+     }
+     for(int i=t-2;i>=0;i--)
+     {  
+        x=i+1;
+        while(x<t)
+        {
+        x++; 
+        printf(" ");
+        }
+         printf("*");
+         for(int j=0;j<2*i-1;j++)
+         {
+         printf("+");
+         if(j==2*i-2)
+         printf("*");
+         }
+         printf("\n");
+     }
+     return 0;
 }
