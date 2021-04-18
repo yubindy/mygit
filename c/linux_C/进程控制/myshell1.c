@@ -8,6 +8,7 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <dirent.h>
+#include <signal.h>
 #define normal 0
 #define output 1
 #define input 2
@@ -148,7 +149,7 @@ void do_can(int nums, char can[100][256])
     switch (fuhao)
     {
     case normal:
-         if (pid == 0)
+        if (pid == 0)
         {
             if (!find_can(arg[0]))
             {
@@ -236,7 +237,7 @@ int find_can(char *path)
 {
     DIR *dp;
     struct dirent *dir;
-    char* file[] = {"./", "/bin", "/usr/bin", NULL};
+    char *file[] = {"./", "/bin", "/usr/bin", NULL};
     if (strncmp(path, "./", 2) == 0)
         path = path + 2;
     int i = 0;
@@ -264,8 +265,8 @@ int main()
     int nums;
     char can[100][256];
     while (1)
-    {   
-        signal(SIGINT,SIG_IGN);
+    {
+        signal(SIGINT, SIG_IGN); //忽视信号处理，防止ctrl c杀苏
         for (int i = 0; i < 100; i++)
             can[i][0] = '\0';
         memset(buf, 0, 256);
@@ -276,10 +277,10 @@ int main()
         explain_can(buf, &nums, can);
         do_can(nums, can);
     }
-    if(buf!=NULL)
+    if (buf != NULL)
     {
-    free(buf);
-    buf=NULL;
+        free(buf);
+        buf = NULL;
     }
     return 0;
 }
