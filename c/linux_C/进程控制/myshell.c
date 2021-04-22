@@ -39,7 +39,7 @@ void explain_can(char *buf, int *nums, char can[100][256])
     {
         if (buf[i] == ' ')
         {
-
+            can[*nums-1][j]=NULL;
             (*nums)++;
             j = 0;
         }
@@ -49,7 +49,7 @@ void explain_can(char *buf, int *nums, char can[100][256])
             j++;
         }
     }
-    can[*nums][j] = '\n';
+    can[*nums-1][j] =NULL;
 }
 void do_can(int nums, char can[100][256])
 {
@@ -80,14 +80,14 @@ void do_can(int nums, char can[100][256])
     ar[nums] = NULL;
     for (int i = 0; i < nums; i++)
     {
-        if (strcmp(ar[i], "<") == 0)
+        if (strcmp(ar[i], ">") == 0)
         {
             flag++;
             fuhao = 1;
             if (ar[++i] == NULL)
                 flag++;
         }
-        if (strcmp(ar[i], ">") == 0)
+        if (strcmp(ar[i], "<") == 0)
         {
             flag++;
             fuhao = 2;
@@ -111,7 +111,7 @@ void do_can(int nums, char can[100][256])
     {
         for (int i = 0; ar[i] != NULL; i++)
         {
-            if (strcmp(ar[i], "<") || strcmp(ar[i], ">"))
+            if (strcmp(ar[i], "<")==0 || strcmp(ar[i], ">")==0)
             {
                 file = ar[i + 1];
                 ar[i] = NULL;
@@ -161,12 +161,13 @@ void do_can(int nums, char can[100][256])
                 exit(0);
             }
             fd = open(file, O_RDWR | O_CREAT | O_TRUNC, 0771);
-            dup2(fd, 1); //此处的1代表标准输入
+            dup2(fd, 1); //此处的1代表标准输出
             execvp(ar[0], ar);
             exit(0);
-            break;
+        
         }
-
+        break;
+         
     case 2:
         if (pid == 0)
         {
@@ -176,7 +177,7 @@ void do_can(int nums, char can[100][256])
                 exit(0);
             }
             fd = open(file, O_RDONLY, 0771);
-            dup2(fd, 0); //此处的0代表标准输出
+            dup2(fd, 0); //此处的0代表标准输入
             execvp(ar[0], ar);
             exit(0);
             break;
@@ -262,9 +263,9 @@ int main()
     char *buf = NULL;
     int nums = 1;
     buf = (char *)malloc(sizeof(char) * 256);
+    char can[100][256];
     while (1)
     {
-        char can[100][256];
         memset(buf, 0, 256);
         //buf="";
         printf("*************\n");
@@ -272,6 +273,8 @@ int main()
         get_can(buf);
         if (strcmp(buf, "exit") == 0 || strcmp(buf, "logout") == 0)
             break;
+        for(int i=0;i<100;i++)
+        can[i][0]='/0';
         explain_can(buf, &nums, can);
         do_can(nums, can);
         nums = 1;

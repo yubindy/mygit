@@ -1,6 +1,4 @@
-#include <iostream>
-#include <vector>
-using namespace std;
+#include "all.h"
 int main()
 {
   vector<int> t(10);

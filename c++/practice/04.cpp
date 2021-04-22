@@ -1,15 +1,13 @@
-#include<iostream>
-#include<vector>
-using namespace std;
+#include "all.h"
 int main()
 {
     string s;
     vector<string> t;
-    while(cin>>s)
+    while (cin >> s)
     {
         t.push_back(s);
     }
-   for(int i=0;i<s.size();i++)
-   cout<<t[i];
-   return 0;
+    for (int i = 0; i < s.size(); i++)
+        cout << t[i];
+    return 0;
 }

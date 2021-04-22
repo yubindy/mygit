@@ -5,7 +5,10 @@
         "math.h": "c",
         "ostream": "cpp",
         "iostream": "cpp",
-        "vector": "cpp"
+        "vector": "cpp",
+        "stdexcept": "cpp",
+        "dirent.h": "c",
+        "stdio.h": "c"
     },
     "code-runner.executorMap": {
         "javascript": "node",
