@@ -1,6 +1,15 @@
-#include "all.h"
+#include <stdio.h>
+
+extern char ** environ;
+
 int main()
 {
-   char *t = "derfgb";
-   printf("%s", t + 1);
+    char ** envir = environ;
+    
+    while(*envir)
+    {
+        fprintf(stdout,"%s\n",*envir);
+        envir++;
+    }
+    return 0;
 }

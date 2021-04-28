@@ -12,7 +12,4 @@
 #include <limits.h>
 #include <errno.h>
 #include <assert.h>
-int main(int arg,*argv[],char ** environ)
-{
-   
-}
+#include<signal.h>

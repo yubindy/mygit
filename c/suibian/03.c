@@ -6,8 +6,9 @@ int main()
    char *a,*b;
    a=(char *)malloc(sizeof(char)*10);
    b=(char *)malloc(sizeof(char)*10);
-   scanf("%s",a);
-   scanf("%s",b);
-   printf("%s",a);
+   a="sadfg";
+   gets(b);
+   if(a=="sadfg")
+   printf("1");
    return 0;
  }

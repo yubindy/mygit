@@ -8,7 +8,9 @@
         "vector": "cpp",
         "stdexcept": "cpp",
         "dirent.h": "c",
-        "stdio.h": "c"
+        "stdio.h": "c",
+        "readline.h": "c",
+        "history.h": "c"
     },
     "code-runner.executorMap": {
         "javascript": "node",
