@@ -1,14 +1,11 @@
 #include<stdio.h>
 #include<string.h>
 #include<stdlib.h>
-int main()
+int main(int argc, char *argv[])
 {
-   char *a,*b;
-   a=(char *)malloc(sizeof(char)*10);
-   b=(char *)malloc(sizeof(char)*10);
-   a="sadfg";
-   gets(b);
-   if(a=="sadfg")
-   printf("1");
-   return 0;
- }
+	for (int i = 0; i < 2; i++)
+	{
+		pid_t pid = fork();
+		printf("hello, world?");
+	}
+}
