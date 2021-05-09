@@ -12,7 +12,7 @@ typedef struct node
 int count = 0;
 node *head = NULL;
 pthread_mutex_t point = PTHREAD_MUTEX_INITIALIZER;
-pthread_cond_t full = PTHREAD_COND_INITIALIZER;
+pthread_cond_t full = PTHREAD_COND_INITIALIZER;   
 pthread_cond_t empty = PTHREAD_COND_INITIALIZER;
 void *producer()
 {
@@ -65,8 +65,7 @@ int main()
         perror("pthread_creat pid error:");
         exit(1);
     }
-    sleep(10);
-    pthread_join(&pid, NULL);
-    pthread_join(&cid, NULL);
+    pthread_join(pid, NULL);
+    pthread_join(cid, NULL);
     return 0;
 }
