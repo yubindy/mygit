@@ -79,4 +79,5 @@ int main()
         pthread_join(pid[i],NULL);
         pthread_join(cid[i],NULL);
     }
+    return 0;
 }
