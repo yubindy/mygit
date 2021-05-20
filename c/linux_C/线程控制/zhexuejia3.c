@@ -7,8 +7,9 @@
 #define n 5 //五个哲学家
 sem_t a[n]; //n个信号量代表筷子
 sem_t t;
+pthread_mutex_t ltck;
 void *ptr2(*arg) //方法3:对于奇数先左后右，偶数相反
-{
+{   
     int i = (*(int *)arg);
     while (1)
     {
@@ -36,11 +37,12 @@ void *ptr2(*arg) //方法3:对于奇数先左后右，偶数相反
 int main()
 {
     pthread_t b[5];
+    pthread_mutex_init(&ltck,NULL);
     srand(time(NULL));
     sem_init(&t, 0, 4); //设置信号量为4，即同时只有4位发生竞争
     for (int i = 0; i < 5; i++)
     {
-        sem_init(&a[i], 0, 1);
+        sem_init(&a[i], 0, 1); 
         pthread_create(&b[i], NULL, ptr2, &i);
     }
     for (int i = 0; i < n; i++)
