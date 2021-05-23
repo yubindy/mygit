@@ -137,7 +137,7 @@ int main(int argc,char *argv[])
     {
         thpool_add_task(func1,NULL);
     }
-    sleep(10);
+    sleep();
     thpool_destroy();
 }
 

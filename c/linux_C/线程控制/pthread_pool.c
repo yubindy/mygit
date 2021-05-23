@@ -4,8 +4,6 @@
 #include <pthread.h>
 #include <errno.h>
 #define min 10
-#define queue_size 30;
-int s=0;
 typedef struct task_t
 {                                //任务队列
     void *(*fuction)(void *arg); //任务执行函数
@@ -92,10 +90,6 @@ void pool_init(int t)
     {
         pthread_create(&pthread_pool->a[i], NULL, pool_fuction, NULL);
     }
-    for(int i=0;i<queue_size;i++)
-    {
-        
-    }
 }
 void pool_destory(int t)
 {
@@ -111,7 +105,7 @@ void pool_destory(int t)
     {
         pthread_join(pthread_pool->a[i], NULL);
     }
-    while (pthread_pool->front != pthread_pool->tail)
+    while (pthread_pool->front )
     {
         free(pthread_pool->front);
         pthread_pool->front = pthread_pool->front->next;
@@ -124,7 +118,7 @@ void pool_destory(int t)
 }
 void *fctl()
 {
-    printf("%3d 线程%lu is working\n",s++, pthread_self());
+    printf("线程%lu is working\n", pthread_self());
     sleep(2);
 }
 int main()
