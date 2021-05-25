@@ -1,15 +1,7 @@
-#include <stdio.h>
-
-extern char ** environ;
-
+#include<stdio.h>
 int main()
 {
-    char ** envir = environ;
+    int n;
+    scanf("%d",&n);
     
-    while(*envir)
-    {
-        fprintf(stdout,"%s\n",*envir);
-        envir++;
-    }
-    return 0;
 }
