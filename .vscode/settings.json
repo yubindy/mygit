@@ -11,7 +11,9 @@
         "stdio.h": "c",
         "readline.h": "c",
         "history.h": "c",
-        "errno.h": "c"
+        "errno.h": "c",
+        "*.tcc": "c",
+        "fstream": "c"
     },
     "code-runner.executorMap": {
         "javascript": "node",
