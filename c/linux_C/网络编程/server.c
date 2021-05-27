@@ -1,16 +1,16 @@
 #include "c_s.h"
 #define point 4507
 #define listsize 15
-#define name 0
+#define names 0
 #define pass 1
 struct user
 {
   char username[32];
   char password[32];
 };
-struct user users[3]{
+struct user users[3] = {
     {"zhaozeyu", "123456"}, {"cl1", "cl1"}, {"asdfg", "123456"}};
-void fidn_name(const char *name, int *t)
+int find_name(int *t, const char *name)
 {
   if (name == NULL)
     return -1;
@@ -26,7 +26,7 @@ void fidn_name(const char *name, int *t)
 }
 void send_sd(int fd, const char *t)
 {
-  if (send(fd, t, string(t), 0) < 0)
+  if (send(fd, t, strlen(t), 0) < 0)
   {
     my_err("send", __LINE__);
   }
@@ -34,9 +34,10 @@ void send_sd(int fd, const char *t)
 int main()
 {
   int sock_fd, new_fd;
-  int flag;
-  int user_num;
+  int flag = 0;
+  int user_num = 0;
   struct sockaddr_in client_addr, server_addr;
+  socklen_t client_len = sizeof(client_addr);
   char cu[32]; //缓存区大小
   pid_t pid;
   int ret;
@@ -46,15 +47,15 @@ int main()
     my_err("socket", __LINE__);
   }
   int opt_val = 1;
-  if (setsockopt(sock_fd, IPPROTO_TCP, SO_REUSEADDR, (void *)&opt_val, sizeof(int)) < 0)
+  if (setsockopt(sock_fd, SOL_SOCKET, SO_REUSEADDR, (void *)&opt_val, sizeof(int)) < 0)
   {
     my_err("setsockopt", __LINE__);
   }
-  memset(server_addr.sin_zero, 0, sizeof(server_addr.sin_zero));
+  memset(&server_addr, 0, sizeof(server_addr));
   server_addr.sin_family = AF_INET;
   server_addr.sin_port = htons(point);
-  server_addr.sin_s_addr = htonl(INADDR_ANY);
-  if (bind(sock_fd, (struct serveraddr *)&server_addr, sizeof(struct serveraddr_in)) < 0)
+  server_addr.sin_addr.s_addr = INADDR_ANY;
+  if (bind(sock_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0)
   {
     my_err("bind", __LINE__);
   }
@@ -64,11 +65,11 @@ int main()
   }
   while (1)
   {
-    if (new_fd = (accept(sock_fd, (struct sockaddr *)&client_addr, sizeof(client_addr))) < 0)
+    if ((new_fd = accept(sock_fd, (struct sockaddr *)&client_addr, &client_len)) < 0)
     {
       my_err("accept", __LINE__);
     }
-    printf("server accpet a new client,ip:%s" inet_ntoa(client_addr.sin_addr));
+    printf("server accpet a new client,ip:%s", inet_ntoa(client_addr.sin_addr));
     if ((pid = fork()) == 0)
     {
       close(sock_fd);
@@ -77,9 +78,9 @@ int main()
         my_err("recv", __LINE__);
       }
       cu[ret - 1] = '\0';
-      if (flag == name) //如果是用户名
+      if (flag == names) //如果是用户名
       {
-        switch (fidn_name(cu, &user_num))
+        switch (find_name(&user_num, cu))
         {
         case -1:
           send_sd(new_fd, "no find the username\n");
@@ -90,9 +91,9 @@ int main()
           break;
         }
       }
-      else if (flag = pass) //如果是密码
+      else if (flag == pass) //如果是密码
       {
-        if (strcmp(users[user_num].password) == 0)
+        if (strcmp(users[user_num].password, cu) == 0)
         {
           send_sd(new_fd, "yes");
           send_sd(new_fd, "welocme sign in the server\n");
@@ -100,7 +101,7 @@ int main()
         }
         else
         {
-          send_fd(new_fd, "the passwor is error\n");
+          send_sd(new_fd, "the passwor is error\n");
           flag = 0;
         }
       }
@@ -110,5 +111,6 @@ int main()
     else
       close(new_fd); //父进程关闭该套接字描述符
   }
+  printf("关闭服务器\n");
   return 0;
 }
