@@ -69,42 +69,45 @@ int main()
     {
       my_err("accept", __LINE__);
     }
-    printf("server accpet a new client,ip:%s", inet_ntoa(client_addr.sin_addr));
+    printf("server accpet a new client,ip:%s\n", inet_ntoa(client_addr.sin_addr));
     if ((pid = fork()) == 0)
     {
+      while (1)
+      {
+        if ((ret = recv(new_fd, cu, sizeof(cu), 0)) < 0)
+        {
+          my_err("recv", __LINE__);
+        }
+        if (flag == names) //如果是用户名
+        {
+          switch (find_name(&user_num, cu))
+          {
+          case -1:
+            send_sd(new_fd, "no find the username\n");
+            break;
+          case 1:
+            flag = pass;
+            send_sd(new_fd, "yes");
+            break;
+          }
+        }
+        else if (flag == pass) //如果是密码
+        {
+          if (strcmp(users[user_num].password, cu) == 0)
+          {
+            send_sd(new_fd, "yes");
+            send_sd(new_fd, "welocme sign in the server");
+            printf("%s login\n", users[user_num].username);
+            break;
+          }
+          else
+          {
+            send_sd(new_fd, "the passwor is error");
+            flag = 0;
+          }
+        }
+      }
       close(sock_fd);
-      if ((ret = recv(sock_fd, cu, sizeof(cu), 0)) < 0)
-      {
-        my_err("recv", __LINE__);
-      }
-      cu[ret - 1] = '\0';
-      if (flag == names) //如果是用户名
-      {
-        switch (find_name(&user_num, cu))
-        {
-        case -1:
-          send_sd(new_fd, "no find the username\n");
-          break;
-        case 1:
-          flag = pass;
-          send_sd(new_fd, "yes\n");
-          break;
-        }
-      }
-      else if (flag == pass) //如果是密码
-      {
-        if (strcmp(users[user_num].password, cu) == 0)
-        {
-          send_sd(new_fd, "yes");
-          send_sd(new_fd, "welocme sign in the server\n");
-          printf("%s login\n", users[user_num].username);
-        }
-        else
-        {
-          send_sd(new_fd, "the passwor is error\n");
-          flag = 0;
-        }
-      }
       close(new_fd);
       exit(0);
     }

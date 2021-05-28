@@ -7,15 +7,17 @@ void send_infor(int sock_fd, const char *t)
     {
         printf("%s:", t);
         fgets(cu, 32, stdin);
+        cu[strlen(cu)-1]='\0';
         if (send(sock_fd, cu, sizeof(cu), 0) < 0)
         {
             my_err("send", __LINE__);
         }
-        if (recv(sock_fd, cu, sizeof(cu), 0) < 0)
+        memset(cu,0,sizeof(cu));
+        if (recv(sock_fd, cu, 3, 0) < 0)
         {
             my_err("recv", __LINE__);
         }
-        if (strcmp(cu, "yes") == 0)
+        if (strncmp(cu, "yes",3) == 0)
             flag = 1;
         else
             printf("\n%s error inupt\n", t);
@@ -44,12 +46,10 @@ int main(int argc, char *argv[])
                 exit(1);
             }
             else
-                server_addr.sin_port = htonl(server_port);
-            printf("port:%d\n", server_port);
+                server_addr.sin_port = htons(server_port);
         }
         else if (strcmp("-a", argv[i]) == 0)
         {
-            printf("%s", argv[i + 1]);
             if (inet_aton(argv[i + 1], &server_addr.sin_addr) == 0)
             {
                 printf("innvalid server_addr.sin_addr\n");
@@ -75,6 +75,5 @@ int main(int argc, char *argv[])
         my_err("recv", __LINE__);
     }
     printf("%s", cu);
-    printf("\n");
     return 0;
 }
