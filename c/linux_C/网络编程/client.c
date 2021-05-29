@@ -13,7 +13,7 @@ void send_infor(int sock_fd, const char *t)
             my_err("send", __LINE__);
         }
         memset(cu,0,sizeof(cu));
-        if (recv(sock_fd, cu, 3, 0) < 0)
+        if (recv(sock_fd,cu, sizeof(cu), 0) < 0)
         {
             my_err("recv", __LINE__);
         }
@@ -70,6 +70,7 @@ int main(int argc, char *argv[])
     }
     send_infor(sock_fd, "username");
     send_infor(sock_fd, "password");
+    memset(cu,0,sizeof(cu));
     if (recv(sock_fd, cu, sizeof(cu), 0) < 0)
     {
         my_err("recv", __LINE__);

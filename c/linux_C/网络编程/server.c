@@ -83,7 +83,7 @@ int main()
           switch (find_name(&user_num, cu))
           {
           case -1:
-            send_sd(new_fd, "no find the username\n");
+            send_sd(new_fd, "not");
             break;
           case 1:
             flag = pass;
@@ -96,14 +96,13 @@ int main()
           if (strcmp(users[user_num].password, cu) == 0)
           {
             send_sd(new_fd, "yes");
-            send_sd(new_fd, "welocme sign in the server");
             printf("%s login\n", users[user_num].username);
+            send_sd(new_fd, "welocme sign in the server");
             break;
           }
           else
           {
-            send_sd(new_fd, "the passwor is error");
-            flag = 0;
+            send_sd(new_fd, "not");
           }
         }
       }
