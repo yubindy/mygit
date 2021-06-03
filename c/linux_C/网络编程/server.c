@@ -72,6 +72,7 @@ int main()
     printf("server accpet a new client,ip:%s\n", inet_ntoa(client_addr.sin_addr));
     if ((pid = fork()) == 0)
     {
+      close(sock_fd);
       while (1)
       {
         if ((ret = recv(new_fd, cu, sizeof(cu), 0)) < 0)
@@ -106,7 +107,6 @@ int main()
           }
         }
       }
-      close(sock_fd);
       close(new_fd);
       exit(0);
     }
