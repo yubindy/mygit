@@ -6,16 +6,16 @@ int main()
     int num[32];
     lid = socket(AF_INET, SOCK_STREAM, 0);
     int opt_val = 1;
-    if (setsockopt(sock_fd, SOL_SOCKET, SO_REUSEADDR, (void *)&opt_val, sizeof(int)) < 0)
+    if (setsockopt(lid, SOL_SOCKET, SO_REUSEADDR, (void *)&opt_val, sizeof(int)) < 0)
     {
         my_err("setsockopt", __LINE__);
     }
     memset(lidaddr, 0, sizeof(lidaddr));
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_port = htons(point);
-    server_addr.sin_addr.s_addr = INADDR_ANY;
-    bind(lid,(sockaddr*)lid,sizeof(sockaddr));
-    listen(lid,15);
+    lidaddr.sin_family = AF_INET;
+    lidaddr.sin_port = htons(point);
+    lidaddr.sin_addr.s_addr = INADDR_ANY;
+    bind(lid, (sockaddr *)&lid, sizeof(lidaddr));
+    listen(lid, 15);
     fd_set rest, alrest;
     int t, maxfd;
     maxfd = lid;
@@ -37,20 +37,20 @@ int main()
             fd_set(cld, alrest);
             if (maxid < cld)
                 maxid = cld;
-            if(t==1)
-            continue;
+            if (t == 1)
+                continue;
         }
-        for(int i=lid+1,i<=maxid;i++)
+        for (int i = lid + 1, i <= maxid; i++)
         {
-            if(fd_set(i,&alrest))
+            if (fd_isset(i, &alrest))
             {
-                if(read(i,num,sizeof(buf))==0)
+                if (read(i, num, sizeof(buf)) == 0)
                 {
                     close(i);
-                    FD_CLR(i,&alrest);
+                    FD_CLR(i, &alrest);
                 }
-            else
-            write(i,num,sizeof(buf));
+                else
+                    write(i, num, sizeof(buf));
+            }
         }
     }
-}

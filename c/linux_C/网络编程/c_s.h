@@ -8,6 +8,8 @@
 #include<arpa/inet.h>
 #include<errno.h>
 #include<sys/select.h>
+#include<sys/poll.h>
+#include<sys/epoll.h>
 void my_err(char *err_string,int line)
 {
     fprintf(stderr,"line %d  ",line);
