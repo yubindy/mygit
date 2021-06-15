@@ -10,6 +10,9 @@
 #include<sys/select.h>
 #include<sys/poll.h>
 #include<sys/epoll.h>
+#include<mysql/mysql.h>
+#include<pthread.h>
+#include"cJSON.h"
 void my_err(char *err_string,int line)
 {
     fprintf(stderr,"line %d  ",line);
