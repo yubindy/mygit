@@ -7,8 +7,10 @@ int main()
     MYSQL_ROW row;
     mysql_init(&mysql);
     mysql_library_init(0, NULL, NULL);
-    mysql_real_connect(&mysql, "127.0.0.1", "root", "zhaozeyu1234", "chat", 0, NULL, 0);
+    mysql_real_connect(&mysql, "127.0.0.1", "root", "zhaozeyu1234", "test", 0, NULL, 0);
     mysql_set_character_set(&mysql, "utf8");
+    int ret = mysql_query(&mysql, "select * from t_st");
+    result = mysql_store_result(&mysql);
     num_fields = mysql_num_fields(result);
     while (row = mysql_fetch_row(result))
     {

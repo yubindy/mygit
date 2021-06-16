@@ -20,7 +20,7 @@
             "setupCommands": [
                 { // 模板自带，好像可以更好地显示STL容器的内容，具体作用自行Google
                     "description": "Enable pretty-printing for gdb",
-                    "text": /*"-gdb-set follow-fork-mode child"*/"-enable-pretty-printing",
+                     "text": "-gdb-set follow-fork-mode child"/*"-enable-pretty-printing"*/,
                     "ignoreFailures": false
                 }
             ],

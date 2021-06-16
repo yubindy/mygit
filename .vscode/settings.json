@@ -13,7 +13,9 @@
         "history.h": "c",
         "errno.h": "c",
         "*.tcc": "c",
-        "fstream": "c"
+        "fstream": "c",
+        "c_s.h": "c",
+        "stdlib.h": "c"
     },
     "code-runner.executorMap": {
         "javascript": "node",
