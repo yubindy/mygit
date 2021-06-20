@@ -1,10 +1,28 @@
 #include "c_s.h"
 MYSQL mysql;
 char nums[50];
-void *body()
+void *body(void *arg)
 {
-    int flag=recv(,nums,sizeof(nums),0);
-
+    struct epoll_event cid = (*(struct epoll_event *)arg);
+    int cid1=cid.data.fd;
+    int pid = pthread_self();
+    switch (buf)
+    {
+    case "a":
+        registered(cid1);
+        break;
+    case "b":
+        sign();
+        break;
+    case "c":
+        find_word();
+        break;
+    default:
+        pthread_exit(&pid);
+        break;
+    }
+    memset()
+    cid.events = EPOLLOUT;
 }
 void mysql_in_del(char buf)
 {
@@ -57,13 +75,18 @@ void mysql_con() //数据库初始化,连接
     }
     mysql_set_character_set(&mysql, "utf8");
 }
-void registered()
+void registered() //登陆函数
 {
+  
 }
-void sign()
+void sign(int cid)
 {
+    
 }
 void send_file()
+{
+}
+void find_word()
 {
 }
 int mysql_close()
@@ -107,14 +130,14 @@ int main()
     ep_id.events = EPOLLIN;
     epoll_ctl(ep_fd, EPOLL_CTL_ADD, lid, &ep_id);
     int events = n + 2;
-    int pthread_id;
+    int pid;
     int tsize;
     while (1)
     {
         epoll_wait(ep_fd, ep_ids, events, -1);
         for (int i = 0; i < events; i++)
         {
-            if (ep_ids[i].data.fd == id)
+            if (ep_ids[i].data.fd == cid)
             {
                 if (cid = accept(lid, &client_addr, sizeof(client_addr)) < 0)
                 {
@@ -126,22 +149,22 @@ int main()
             }
             else if (ep_ids[i].events & EPOLLIN)
             {
-                if (tsize = recv(ep_ids[i].data.fd, nums, sizeof(nums), 0) < 0)
+                if (tsize = recv(ep_ids[i].data.fd, .nums, sizeof(.nums), 0) < 0)
                 {
                     my_err("recv", __LINE__);
                 }
                 else if (tsize == 0) //对端客户端关闭
                 {
                     close(ep_ids[i].data.fd);
+                    epoll_ctl(ep_fd, EPOLL_CTL_DEL, ep_ids[i].data.fd, &ep_fd);
                 }
                 else
                 {
-                    if (pthread_create(&pthread_id, NULL, body, NULL))
+                    if (pthread_create(&pid, NULL, body, &ep_ids[i]))
                     {
                         my_err("thread_create", __LINE__);
                     }
-                    pthread_detach(pthread_id);
-                    ep_ids[i].events = EPOLLOUT;
+                    pthread_detach(pid);
                 }
             }
             else if (ep_ids[i].events & EPOLLOUT)

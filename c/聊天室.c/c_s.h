@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -13,7 +14,15 @@
 #include <pthread.h>
 #include "cJSON.h"
 #include <mysql/mysql.h>
-# define password "zhaozeyu1234"
+#define passwords "zhaozeyu1234"
+#define port 8573 //绑定端口
+#define size 10
+#define st 10001
+// struct nod
+// {
+//     char nums[50];
+//     int cid;
+// }nod;
 void my_err(char *err_string, int line)
 {
     fprintf(stderr, "line %d  ", line);
