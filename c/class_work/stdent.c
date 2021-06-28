@@ -1,5 +1,5 @@
 #include "student.h"
-pass root = {"123456\n", "asdfgh\n"};
+pass root = {"123456\n", "asdfgh"};
 void qtsort(node *p, node *q) //排序链表
 {
     node *t = q->next;
@@ -30,8 +30,7 @@ void first_jie() //开始登陆界面
             printf("账号错误\n");
             continue;
         }
-        printf("管理员密码:");
-        fgets(nums, 10, stdin);
+        char *nums = getpass("请输入密码:");
         if (strcmp(nums, root.password) != 0)
         {
             printf("密码错误\n");
@@ -39,7 +38,6 @@ void first_jie() //开始登陆界面
         else
             break;
     }
-    printf("-------欢迎来到学生管理系统--------\n");
     jie();
 }
 void add(node *t) //添加学生信息
@@ -268,7 +266,7 @@ void jie() //选择处理界面
 {
     node *t;
     t = (node *)malloc(sizeof(node));
-    printf("------------登陆成功--------------\n");
+    printf("------------登陆成功--------------\n\n");
     reads(t);
     while (1)
     {
