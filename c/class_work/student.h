@@ -15,10 +15,13 @@ typedef struct date
     int all;
     struct date *next;
 } node;
-void tsort(node *t, node *s) //封装交换节点下一个节点的函数
-{
-    node *r=s->next,*q=r->next;
-    t->next=r;
-    r->next=s;
-    s->next=q;
-}
+void jie();
+void first_jie();
+void add(node *t);
+void selects(node *t);
+void change(node *t);
+void del(node *t);
+void sorts(node *t);
+void save(node *t);
+void reads(node *t);
+void atsort(node *p, node *q);

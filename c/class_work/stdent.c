@@ -1,17 +1,25 @@
 #include "student.h"
 pass root = {"123456\n", "asdfgh\n"};
-void jie();
-void first_jie();
-void add(node *t);
-void selects(node *t);
-void change(node *t);
-void del(node *t);
-void sorts(node *t);
-void save(node *t);
-void reads(node *t);
+void qtsort(node *p, node *q) //排序链表
+{
+    node *t = q->next;
+    if (t->next != NULL)
+    {
+        node *s = t->next;
+        p->next = t;
+        t->next = q;
+        q->next = s;
+    }
+    else
+    {
+        p->next = t;
+        t->next = q;
+        q->next = NULL;
+    }
+}
 void first_jie() //开始登陆界面
 {
-    printf("----欢迎来到学生管理系统------\n");
+    printf("------欢迎来到学生管理系统------\n");
     char nums[10];
     while (1)
     {
@@ -31,7 +39,7 @@ void first_jie() //开始登陆界面
         else
             break;
     }
-    printf("----欢迎来到学生管理系统----\n");
+    printf("-------欢迎来到学生管理系统--------\n");
     jie();
 }
 void add(node *t) //添加学生信息
@@ -68,7 +76,7 @@ void del(node *t) //删除学生信息
     node *q;
     printf("需要删除学生学号：");
     scanf("%d", &num);
-    for (node *s = t; s != NULL; s = s->next)
+    for (node *s = t; s->next != NULL; s = s->next)
     {
         if (s->next->number == num)
         {
@@ -85,7 +93,7 @@ void change(node *t) //修改学生信息
 {
     int nums;
     printf("需要修改学生学号:\n");
-    scanf("%d", nums);
+    scanf("%d", &nums);
     for (node *p = t; p != NULL; p = p->next)
     {
         if (p->number == nums)
@@ -110,10 +118,10 @@ void change(node *t) //修改学生信息
     }
     printf("该系统中无此学生信息\n");
 }
-void save(node *t) //保存链表到文件中 
+void save(node *t) //保存链表到文件中
 {
     FILE *fd;
-    fd = fopen("infromation.txt", "a+");
+    fd = fopen("infromation.txt", "w+");
     node *s = t;
     while (s->next != NULL)
     {
@@ -125,40 +133,73 @@ void save(node *t) //保存链表到文件中
 }
 void sorts(node *t) //排序链表
 {
-    printf("1.按学号排序\n2.按照总分排序\n");
-    char r, re;
-    scanf("%c %c", &re, &r);
+    printf("1.按学号排序\n2.按照总分排序\n3.按照数学成绩\n4.按照语文成绩\n");
+    char rt, re;
     node *p, *q;
-    if (r == '1')
+    int we = 10;
+    scanf("%c %c", &re, &rt);
+    if (rt == '1')
     {
-        p = t, q = t;
-        while (p->next != NULL)
+        while (we--)
         {
-            q = p;
-            p = p->next;
-            while (q->next->next != NULL)
+            for (p = t; p->next->next->next != NULL; p = p->next)
             {
-                if (q->next->number > q->next->next->number)
-                    tsort(q, q->next);
-                q = q->next;
+                for (q = p; q->next->next != NULL; q = q->next)
+                {
+                    if (q->next->number > q->next->next->number)
+                    {
+                        qtsort(q, q->next);
+                    }
+                }
             }
-            p = q->next;
         }
     }
-    else if (r == '2')
+    else if (rt == '2')
     {
-        p = t, q = t;
-        while (p->next != NULL)
+        while (we--)
         {
-            q = p;
-            p = p->next;
-            while (q->next->next != NULL)
+            for (p = t; p->next->next->next != NULL; p = p->next)
             {
-                if (q->next->all > q->next->next->all)
-                    tsort(q, q->next);
-                q = q->next;
+                for (q = p; q->next->next != NULL; q = q->next)
+                {
+                    if (q->next->all > q->next->next->all)
+                    {
+                        qtsort(q, q->next);
+                    }
+                }
             }
-            p = q->next;
+        }
+    }
+    else if (rt == '3')
+    {
+        while (we--)
+        {
+            for (p = t; p->next->next->next != NULL; p = p->next)
+            {
+                for (q = p; q->next->next != NULL; q = q->next)
+                {
+                    if (q->next->math > q->next->next->math)
+                    {
+                        qtsort(q, q->next);
+                    }
+                }
+            }
+        }
+    }
+    else if (rt == '4')
+    {
+        while (we--)
+        {
+            for (p = t; p->next->next->next != NULL; p = p->next)
+            {
+                for (q = p; q->next->next != NULL; q = q->next)
+                {
+                    if (q->next->chinese > q->next->next->chinese)
+                    {
+                        qtsort(q, q->next);
+                    }
+                }
+            }
         }
     }
     else
@@ -177,19 +218,19 @@ void sorts(node *t) //排序链表
 void reads(node *t) //从文件中读取数据
 {
     FILE *fd;
-    fd = fopen("infromation.txt", "a+");
+    fd = fopen("infromation.txt", "r+");
     node *s = (node *)malloc(sizeof(node));
-    node *p,*x;
+    node *p, *x;
     t->next = s;
     while (fscanf(fd, "%s %d %d %d %d\n", s->name, &s->number, &s->math, &s->chinese, &s->all) == 5)
     {
         p = (node *)malloc(sizeof(node));
         s->next = p;
-        x=s;
+        x = s;
         s = s->next;
     }
-    p=x->next;
-    x->next=NULL;
+    p = x->next;
+    x->next = NULL;
     free(p);
     fclose(fd);
     printf("文件中读取数据完成\n");
@@ -207,7 +248,7 @@ void selects(node *t) //查询学生信息
         {
             if (p->number == num)
             {
-                printf("名字%s 学号%d  数学%d 语文%d 总分%d\n", p->name, p->number, p->math, p->chinese, p->all);
+                printf("名字%5s 学号%5d  数学%5d 语文%5d 总分%5d\n", p->name, p->number, p->math, p->chinese, p->all);
                 return;
             }
         }
@@ -227,15 +268,17 @@ void jie() //选择处理界面
 {
     node *t;
     t = (node *)malloc(sizeof(node));
+    printf("------------登陆成功--------------\n");
     reads(t);
     while (1)
     {
-        printf("-------------------------------\n");
-        printf("--------请作出选择-------------\n");
-        printf("1.增加学生信息   *   2.删除学生信息\n");
-        printf("3.修改学生信息   *   4.查询学生信息\n");
-        printf("5.退出学生系统   *   6.排序学生信息\n");
+        printf("--------------------------------------\n");
+        printf("---------------请作出选择-------------\n");
+        printf("1.增加学生信息    *    2.删除学生信息\n");
+        printf("3.修改学生信息    *    4.查询学生信息\n");
+        printf("5.退出学生系统    *   6.排序学生信息\n");
         printf("7.保存学生信息\n");
+        printf("--------------------------------------\n");
         char s;
         s = getc(stdin);
         switch (s)
