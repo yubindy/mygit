@@ -25,7 +25,7 @@ int main()
     {
         my_err("bind", __LINE__);
     }
-    if (listen(lid, 20) < 0)
+    if (listen(lid,size) < 0)
     {
         my_err("listen", __LINE__);
     }

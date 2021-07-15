@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <netinet/in.h>
+#include <termios.h>
 #include <arpa/inet.h>
 #include <errno.h>
 #include <sys/select.h>
@@ -18,7 +19,7 @@
 #include <mysql/mysql.h>
 #define passwords "zhaozeyu1234"
 #define port 8573   //绑定端口
-#define size 10     ///可允许同时连接的最大客户端数量
+#define size 20     ///可允许同时连接的最大客户端数量
 typedef struct pack //定义包类型
 {
     char send_name[10];
@@ -44,4 +45,15 @@ int mysql_closet();
 void registered(pack *recv_pack);
 void sign(pack *recv_pack);
 void find_words(pack *recv_pack);
+void mima(char *s)  //封装无回显示函数
+{
+    struct termios new_ting, old_ting;
+    tcgetattr(0, &old_ting);
+    new_ting = old_ting;
+    new_ting.c_lflag &= ~ECHO;
+    tcsetattr(0, TCSANOW, &new_ting);
+    printf("请输入密码:");
+    scanf("%s", s);
+    tcsetattr(0, TCSANOW, &old_ting);
+}
 #endif
