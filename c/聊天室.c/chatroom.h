@@ -24,7 +24,7 @@ typedef struct pack //定义包类型
     char send_name[10];
     char recv_name[10]; //名字
     int send_id;
-    int recv_id;
+    int id;
     int send_nums; //账号
     int recv_nums;
     char cho; //选项
@@ -32,21 +32,16 @@ typedef struct pack //定义包类型
     char nums[20];
 
 } pack;
-MYSQL mysql;
-void my_err(char *err_string, int line)
-{
-    fprintf(stderr, "line %d  ", line);
-    perror(err_string);
-    exit(1);
-}
-void send_t(pack *s, int sock_fd)
-{
-    if (send(sock_fd, s, sizeof(pack), 0) < 0)
-        my_err("send", __LINE__);
-}
-void recv_t(pack *s, int sock_fd)
-{
-    if (recv(sock_fd, s, sizeof(pack), 0) < 0)
-        my_err("recv", __LINE__);
-}
+extern MYSQL mysql;
+void my_err(char *err_string, int line);
+void send_t(pack *s, int sock_fd);
+void recv_t(pack *s, int sock_fd);
+void *body(void *arg);
+void mysql_in_del(char *buf);
+void mysql_select(char *buf, pack *recv_pack, int t);
+void mysql_con();
+int mysql_closet();
+void registered(pack *recv_pack);
+void sign(pack *recv_pack);
+void find_words(pack *recv_pack);
 #endif
