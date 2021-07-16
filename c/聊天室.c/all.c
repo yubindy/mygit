@@ -1,5 +1,6 @@
 #include "chatroom.h"
-MYSQL mysql;
+MYSQL mysql; //大bug注意多用户之间信息相混
+pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 char s[200];
 void *body(void *arg);
 void mysql_in_del(char *buf);
@@ -28,10 +29,13 @@ void recv_t(pack *s, int sock_fd)
 }
 void *body(void *arg)
 {
+    pthread_mutex_lock(&lock);
     pack *packs = ((pack *)arg);
-    pack *recv_pack=(pack*)malloc(sizeof(pack));
-    memcpy((void*)recv_pack,(void*)packs,sizeof(pack));
+    pack *recv_pack = (pack *)malloc(sizeof(pack));
+    memcpy((void *)recv_pack, (void *)packs, sizeof(pack));
+    pthread_mutex_unlock(&lock);
     int pid = pthread_self();
+    printf("文件描述符%d\n", recv_pack->send_id);
     switch (recv_pack->cho)
     {
     case 'a':
@@ -85,7 +89,7 @@ void mysql_select(char *buf, pack *recv_pack, int t) //数据库查询
                 {
                     switch (t)
                     {
-                    case 0:
+                    case 0: //注册
                         recv_pack->send_nums = atoi((char *)row[i]);
                         break;
                     case 1: //找回密码
@@ -94,6 +98,11 @@ void mysql_select(char *buf, pack *recv_pack, int t) //数据库查询
                         recv_pack->id = atoi((char *)row[i + 1]);                         //问题号
                         strncpy(recv_pack->nums, (char *)row[i + 2], sizeof(row[i + 2])); //回答
                         mysql_free_result(result);
+                        return;
+                    }
+                    case 2: //登陆
+                    {
+                        strncpy(recv_pack->work, right, sizeof(right)); //只要能找到数据，就正确
                         return;
                     }
                     default:
@@ -146,27 +155,21 @@ void registered(pack *recv_pack) //注册函数
 void sign(pack *recv_pack) //登陆函数
 {
     sprintf(s, "select * from user_all where number=%d and password=\'%s\'", recv_pack->send_nums, recv_pack->work);
+    mysql_select(s, recv_pack, 2);
+    send_t(recv_pack, recv_pack->send_id);
+    if (strcmp(recv_pack->work, right) != 0)
+    {
+        return;
+    }
+    sprintf(s, "update user_all set status=1 where number=%d", recv_pack->send_nums); //将用户状态设置为上线
     int flag = mysql_query(&mysql, s);
-    if (!flag)
+    if (flag)
     {
-
-        strncpy(recv_pack->work, "yes", 3);
-        send_t(recv_pack, recv_pack->send_id);
-        sprintf(s, "update user_all set status=1 where number=%d", recv_pack->send_nums); //将用户状态设置为上线
-        printf("%s", s);
-        flag = mysql_query(&mysql, s);
-        if (flag)
-        {
-            printf("ERROR:%s\n", mysql_error(&mysql));
-            exit(1);
-        }
-        send_t(recv_pack, recv_pack->send_id);
-        printf("用户登陆成功");
+        printf("ERROR:%s\n", mysql_error(&mysql));
+        exit(1);
     }
-    else
-    {
-        printf("账号%d用户登陆失败\n", recv_pack->send_nums);
-    }
+    send_t(recv_pack, recv_pack->send_id);
+    printf("用户登陆成功");
 }
 void find_words(pack *recv_pack) //找回密码
 {
@@ -239,6 +242,7 @@ int main()
             }
             else if (ep_ids[i].events & EPOLLIN) //读数据
             {
+                pthread_mutex_lock(&lock);
                 if ((tsize = recv(ep_ids[i].data.fd, packs, sizeof(pack), 0)) < 0)
                 {
                     my_err("recv", __LINE__);
@@ -251,6 +255,7 @@ int main()
                 else
                 {
                     packs->send_id = ep_id.data.fd;
+                    printf("文件描述符%d",packs->send_id);
                     if (pthread_create(&pid, NULL, body, ((void *)packs)))
                     {
                         my_err("thread_create", __LINE__);
@@ -258,6 +263,7 @@ int main()
                     pthread_detach(pid);
                 }
             }
+            pthread_mutex_unlock(&lock);
         }
     }
     mysql_closet();

@@ -34,6 +34,7 @@ typedef struct pack //定义包类型
 
 } pack;
 extern MYSQL mysql;
+const char right[20]="yes you are right";
 void my_err(char *err_string, int line);
 void send_t(pack *s, int sock_fd);
 void recv_t(pack *s, int sock_fd);
@@ -45,7 +46,7 @@ int mysql_closet();
 void registered(pack *recv_pack);
 void sign(pack *recv_pack);
 void find_words(pack *recv_pack);
-void mima(char *s)  //封装无回显示函数
+void mima(char *s) //封装无回显示函数
 {
     struct termios new_ting, old_ting;
     tcgetattr(0, &old_ting);

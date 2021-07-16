@@ -4,10 +4,11 @@ pack *send_pack;
 void delu(int sock_fd);
 void chose();
 void cli_find(int sock_fd);
-void cli_sign(int sock_fd);
+int cli_sign(int sock_fd);
 void cli_regist(int sock_fd);
 void cli_chuli(int sock_fd);
 void *body(void *arg);
+void next_jiemain(int sock_fd);
 void my_err(char *err_string, int line)
 {
     fprintf(stderr, "line %d  ", line);
@@ -25,7 +26,8 @@ void recv_t(pack *s, int sock_fd)
         my_err("recv", __LINE__);
 }
 void cli_delu(int sock_fd)
-{
+{   
+    int pand=0;
     while (1)
     {
         printf("---欢迎来到简单的聊天室---\n");
@@ -35,14 +37,19 @@ void cli_delu(int sock_fd)
         printf("%5s", "q.退出\n");
         printf("----------------------------\n");
         scanf("%c", &send_pack->cho);
+        printf("文件描述符%d\n",send_pack->send_id);
         switch (send_pack->cho)
         {
         case 'a':
-            cli_sign(sock_fd);
-            return;
+            pand=cli_sign(sock_fd);
+            if(pand==0)
+            break;
+            else
+            next_jiemain(sock_fd);
         case 'b':
             cli_regist(sock_fd);
-            break;;
+            break;
+            ;
         case 'c':
             cli_find(sock_fd);
             break;
@@ -54,20 +61,27 @@ void cli_delu(int sock_fd)
         scanf("%c", &send_pack->cho);
     }
 }
-void cli_sign(int sock_fd)
+void next_jiemain(int sock_fd)
 {
-    while (1)
+    return;
+}
+int cli_sign(int sock_fd)
+{
+    printf("账号:");
+    scanf("%d", &send_pack->send_nums);
+    mima(send_pack->work);
+    send_t(send_pack, sock_fd);
+    recv_t(recv_pack, sock_fd);
+    if (strncmp(recv_pack->work, right, sizeof(right)) != 0)
     {
-        printf("账号:");
-        scanf("%d", &send_pack->send_nums);
-        printf("\n");
-        mima(send_pack->work);
-        send_t(send_pack, sock_fd);
-        recv_t(recv_pack, sock_fd);
-        if (strncmp(recv_pack->work, "yes", 3) == 0)
-            break;
+        printf("\n密码错误，请重新登陆\n");
+        return 0;
     }
-    printf("\n登陆成功\n");
+    else
+    {
+        printf("\n登陆成功\n");
+        return 1;
+    }
 }
 void cli_regist(int sock_fd)
 {
@@ -116,6 +130,8 @@ void cli_find(int sock_fd)
         scanf("%s", t);
         if (strcmp(t, recv_pack->nums) == 0)
             printf("该账号密码为:%s\n", recv_pack->work);
+        else
+            printf("回答错误，请重试\n");
     }
     else
         printf("账号错误，请重新输入\n");
