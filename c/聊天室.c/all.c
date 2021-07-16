@@ -1,7 +1,6 @@
 #include "chatroom.h"
 MYSQL mysql; //大bug注意多用户之间信息相混
 pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
-char s[200];
 void *body(void *arg);
 void mysql_in_del(char *buf);
 void mysql_select(char *buf, pack *recv_pack, int t);
@@ -11,6 +10,8 @@ void registered(pack *recv_pack);
 void sign(pack *recv_pack);
 void find_words(pack *recv_pack);
 void send_file();
+void add_friend();
+void select_friend();
 void my_err(char *err_string, int line)
 {
     fprintf(stderr, "line %d  ", line);
@@ -140,7 +141,7 @@ int mysql_closet()
 }
 void registered(pack *recv_pack) //注册函数
 {
-
+    char s[200];
     sprintf(s, "insert into user_all (username,password,question,answer)"
                "values(\"%s\",\"%s\",%d,\"%s\")",
             recv_pack->send_name, recv_pack->work, recv_pack->id, recv_pack->nums);
@@ -154,6 +155,7 @@ void registered(pack *recv_pack) //注册函数
 }
 void sign(pack *recv_pack) //登陆函数
 {
+    char s[200];
     sprintf(s, "select * from user_all where number=%d and password=\'%s\'", recv_pack->send_nums, recv_pack->work);
     mysql_select(s, recv_pack, 2);
     send_t(recv_pack, recv_pack->send_id);
@@ -168,11 +170,13 @@ void sign(pack *recv_pack) //登陆函数
         printf("ERROR:%s\n", mysql_error(&mysql));
         exit(1);
     }
+    recv_pack->status = 1;
     send_t(recv_pack, recv_pack->send_id);
     printf("用户登陆成功");
 }
 void find_words(pack *recv_pack) //找回密码
 {
+    char s[200];
     sprintf(s, "select password,question,answer from user_all where number=%d", recv_pack->send_nums);
     mysql_select(s, recv_pack, 1);
     send_t(recv_pack, recv_pack->send_id);
@@ -249,13 +253,18 @@ int main()
                 }
                 else if (tsize == 0) //对端客户端关闭
                 {
+                    char s[200];
                     close(ep_ids[i].data.fd);
+                    if (packs->status == 1)   //如果已经登陆，设置为0
+                    {   
+                        sprintf(s, "update user_all set status=0 where number=%d",packs->send_nums);
+                    }
                     epoll_ctl(ep_fd, EPOLL_CTL_DEL, ep_ids[i].data.fd, &ep_id);
                 }
                 else
                 {
                     packs->send_id = ep_id.data.fd;
-                    printf("文件描述符%d",packs->send_id);
+                    printf("文件描述符%d", packs->send_id);
                     if (pthread_create(&pid, NULL, body, ((void *)packs)))
                     {
                         my_err("thread_create", __LINE__);

@@ -26,8 +26,8 @@ void recv_t(pack *s, int sock_fd)
         my_err("recv", __LINE__);
 }
 void cli_delu(int sock_fd)
-{   
-    int pand=0;
+{
+    int pand = 0;
     while (1)
     {
         printf("---欢迎来到简单的聊天室---\n");
@@ -37,15 +37,16 @@ void cli_delu(int sock_fd)
         printf("%5s", "q.退出\n");
         printf("----------------------------\n");
         scanf("%c", &send_pack->cho);
-        printf("文件描述符%d\n",send_pack->send_id);
         switch (send_pack->cho)
         {
         case 'a':
-            pand=cli_sign(sock_fd);
-            if(pand==0)
+            pand = cli_sign(sock_fd);
+            if (pand != 0)
+            {
+                next_jiemain(sock_fd);
+                return;
+            }
             break;
-            else
-            next_jiemain(sock_fd);
         case 'b':
             cli_regist(sock_fd);
             break;
@@ -63,7 +64,41 @@ void cli_delu(int sock_fd)
 }
 void next_jiemain(int sock_fd)
 {
-    return;
+    int pand = 0;
+    while (1)
+    {
+        printf("---欢迎来到简单的聊天室---\n");
+        printf("%5s", "a.加好友\n");
+        printf("%5s", "b.注册\n");
+        printf("%5s", "c.找回密码\n");
+        printf("%5s", "q.退出\n");
+        printf("----------------------------\n");
+        scanf("%c", &send_pack->cho);
+        switch (send_pack->cho)
+        {
+        case 'a':
+            pand = cli_sign(sock_fd);
+            if (pand != 0)
+            {
+                next_jiemain(sock_fd);
+                return;
+            }
+            break;
+        case 'b':
+            cli_regist(sock_fd);
+            break;
+            ;
+        case 'c':
+            cli_find(sock_fd);
+            break;
+        case 'q':
+            exit(0);
+        default:
+            printf("无效输入，请重试\n");
+        }
+        scanf("%c", &send_pack->cho);
+    }
+}
 }
 int cli_sign(int sock_fd)
 {
@@ -80,6 +115,7 @@ int cli_sign(int sock_fd)
     else
     {
         printf("\n登陆成功\n");
+        recv_pack->status = 1;
         return 1;
     }
 }

@@ -22,10 +22,11 @@
 #define size 20     ///可允许同时连接的最大客户端数量
 typedef struct pack //定义包类型
 {
-    char send_name[10];
     char recv_name[10]; //名字
+    char send_name[10];
     int send_id;
     int id;
+    int status;    //状态
     int send_nums; //账号
     int recv_nums;
     char cho; //选项
@@ -34,7 +35,7 @@ typedef struct pack //定义包类型
 
 } pack;
 extern MYSQL mysql;
-const char right[20]="yes you are right";
+const char right[20] = "yes you are right";
 void my_err(char *err_string, int line);
 void send_t(pack *s, int sock_fd);
 void recv_t(pack *s, int sock_fd);
