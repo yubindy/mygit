@@ -7,6 +7,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <string.h>
+#include<signal.h>
 #include <netinet/in.h>
 #include <termios.h>
 #include <arpa/inet.h>
@@ -26,22 +27,34 @@ typedef struct pack //定义包类型
     char send_name[10];
     int send_id;
     int id;
-    int status;    //状态
+    int status;    //消息状态2.删好友未发1,加好友未发，0已发
     int send_nums; //账号
     int recv_nums;
-    char cho; //选项
+    char cho; //选项选择功能
     char work[50];
     char nums[20];
 
 } pack;
+typedef struct node////定义链表存储上线用户,频繁修改数据
+{ 
+    char t[20];  //名字
+    int id;
+    struct node *next;
+} node;
+typedef struct pthnode  //保存信息的链表
+{
+    char work[50];   //存储历史或好友名字的字符串
+    int status;  //好友状态
+    struct pthnode* next;
+}pthnode;
 extern MYSQL mysql;
 const char right[20] = "yes you are right";
 void my_err(char *err_string, int line);
-void send_t(pack *s, int sock_fd);
-void recv_t(pack *s, int sock_fd);
+void send_t(pack *s, int fd);
+void recv_t(pack *s, int fd);
 void *body(void *arg);
 void mysql_in_del(char *buf);
-void mysql_select(char *buf, pack *recv_pack, int t);
+int mysql_select(char *buf, pack *recv_pack, int t);
 void mysql_con();
 int mysql_closet();
 void registered(pack *recv_pack);
@@ -54,7 +67,7 @@ void mima(char *s) //封装无回显示函数
     new_ting = old_ting;
     new_ting.c_lflag &= ~ECHO;
     tcsetattr(0, TCSANOW, &new_ting);
-    printf("请输入密码:");
+    printf("请输入密码(20个字符以内):");
     scanf("%s", s);
     tcsetattr(0, TCSANOW, &old_ting);
 }
