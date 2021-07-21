@@ -420,6 +420,13 @@ int main()
     end=head;
     pack *packs = (pack *)malloc(sizeof(pack));
     pthead = (pthnode *)malloc(sizeof(pthnode));
+    pthnode *a,*b=pthead;
+    for(int i=0;i<size;i++)
+    {
+        a=(pthnode*)malloc(sizeof(pthnode));
+        b->next=a;
+        b=b->next;
+    }
     struct sockaddr_in client_addr, server_addr;
     lid = socket(AF_INET, SOCK_STREAM, 0);
     if (lid < 0)
