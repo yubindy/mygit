@@ -1,10 +1,12 @@
 #include "chatroom.h"
 MYSQL mysql;
 pthnode *pthead;
+int mes = 0;
 node *head = NULL;
 node *end = NULL;
 pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t lockwords = PTHREAD_MUTEX_INITIALIZER;
+void panduan_message(pack *recv_pack);
 void *body(void *arg);
 void mysql_in_del(char *buf);
 int mysql_select(char *buf, pack *recv_pack, int t);
@@ -20,6 +22,13 @@ void del_friend(pack *recv_pack);
 void select_friend(pack *recv_pack);
 void chat_friend(pack *recv_pack);
 void message(pack *recv_pack);
+void panduan_message(pack *recv_pack) //判断该对应用户，是否有消息
+{
+    char s[200];
+    sprintf(s, "select * from message where recv_name=\'%s\' and id>0", recv_pack->send_name);
+    recv_pack->status = mysql_select(s, recv_pack, 3);
+    return;
+}
 int find_status(char *name) //查找用户在线否
 {
     node *cname = head;
@@ -29,8 +38,8 @@ int find_status(char *name) //查找用户在线否
         {
             return 1;
         }
-        if(cname==NULL)
-        return 0;
+        if (cname == NULL)
+            return 0;
         cname = cname->next;
     }
     return 0;
@@ -39,8 +48,9 @@ void chat_friend(pack *recv_pack) //私聊
 {
     char s[200];
     int t = 0;
-    sprintf(s, "select user,friend from friend where recv_name=\'%s\'and send_name=\'%s\'union "
-               "select user,friend from friend where recv_name=\'%s\'and send_name=\'%s\'",
+    char *er;
+    sprintf(s, "select * from friend where recv_name=\'%s\'and send_name=\'%s\'union "
+               "select * from friend where recv_name=\'%s\'and send_name=\'%s\'",
             recv_pack->recv_name, recv_pack->send_name, recv_pack->send_name, recv_pack->recv_name);
     if (t == mysql_select(s, recv_pack, 3)) //如果没有加好友
     {
@@ -48,16 +58,30 @@ void chat_friend(pack *recv_pack) //私聊
         send_t(recv_pack, recv_pack->send_id);
         return;
     }
-    sprintf(s, "insert into frienf_histroy (recv_name,send_name,words)" //加入好友历史
+    if (strcmp(recv_pack->work, "~exit") == 0)
+    {
+        send_t(recv_pack, recv_pack->send_id);
+        return;
+    }
+    sprintf(s, "insert into friend_histroy (recv_name,send_name,words)" //加入好友历史
                "values(\'%s\',\'%s\',\'%s\')",
             recv_pack->recv_name, recv_pack->send_name, recv_pack->work);
+    mysql_in_del(s);
     if (t == find_status(recv_pack->recv_name)) //如果对方不在线,加入消息表
     {
         sprintf(s, "insert into message(recv_name,send_name,id,words)" //id=7，好友未读消息
                    "values(\'%s\',\'%s\',7,\'%s\')",
                 recv_pack->recv_name, recv_pack->send_name, recv_pack->work);
+        mysql_in_del(s);
         strcpy(recv_pack->work, "对不起，该好友没有上线\n");
         send_t(recv_pack, recv_pack->send_id);
+    }
+    else
+    {
+        sprintf(s, "insert into message(recv_name,send_name,id,works)" //id=6
+                   "values(\'%s\',\'%s\',6,\'%s\')",
+                recv_pack->recv_name, recv_pack->send_name, recv_pack->work);
+        mysql_in_del(s);
     }
 }
 void mysql_select_words(char *buf, pack *recv_pack, int t) //查询多条信息,写入链表
@@ -123,7 +147,7 @@ void my_err(char *err_string, int line)
 }
 void send_t(pack *s, int fd)
 {
-
+    panduan_message(s);
     if (send(fd, s, sizeof(pack), 0) < 0)
         my_err("send", __LINE__);
 }
@@ -156,6 +180,8 @@ void *body(void *arg)
         break;
     case 'f':
         select_friend(recv_pack);
+    case 'g':
+        chat_friend(recv_pack);
         break;
     case 'j':
         message(recv_pack);
@@ -274,7 +300,7 @@ void registered(pack *recv_pack) //注册函数
     printf("注册成功\n");
     return;
 }
-void sign(pack *recv_pack) //登陆函数 
+void sign(pack *recv_pack) //登陆函数
 {
     char s[200];
     sprintf(s, "select username from user_all where number=%d and password=\'%s\'", recv_pack->send_nums, recv_pack->work);
@@ -284,14 +310,13 @@ void sign(pack *recv_pack) //登陆函数
     {
         return;
     }
-    recv_pack->status = 1;
     pthread_mutex_lock(&lock);
     node *p = (node *)malloc(sizeof(node));
     strcpy(p->t, recv_pack->send_name);
     p->id = recv_pack->send_id;
     end->next = p;
-    end=p;
-    end->next=NULL;
+    end = p;
+    end->next = NULL;
     pthread_mutex_unlock(&lock);
     send_t(recv_pack, recv_pack->send_id);
     printf("用户登陆成功");
@@ -317,9 +342,9 @@ void add_friend(pack *recv_pack) //加好友
         strcpy(recv_pack->work, "申请已经发送请等待");
     }
     recv_pack->id = 1;
-    send_t(recv_pack, recv_pack->send_id);
     sprintf(s, "insert into message(recv_name,send_name,id)values(\'%s\',\'%s\',%d)",
             recv_pack->recv_name, recv_pack->send_name, recv_pack->id); //将消息写进表中
+    send_t(recv_pack, recv_pack->send_id);
     mysql_in_del(s);
 }
 void del_friend(pack *recv_pack) //删除好友
@@ -335,11 +360,6 @@ void del_friend(pack *recv_pack) //删除好友
         send_t(recv_pack, recv_pack->send_id);
         return;
     }
-    else
-    {
-        strcpy(recv_pack->work, "你已经删除该好友");
-        send_t(recv_pack, recv_pack->send_id);
-    }
     sprintf(s, "delete from friend where recv_name=\'%s\'and send_name=\'%s\'", recv_pack->recv_name, recv_pack->send_name);
     mysql_in_del(s);
     sprintf(s, "delete from friend where recv_name=\'%s\'and send_name=\'%s\'", recv_pack->send_name, recv_pack->recv_name);
@@ -347,6 +367,8 @@ void del_friend(pack *recv_pack) //删除好友
     recv_pack->id = 2;
     sprintf(s, "insert into message(recv_name,send_name,id)values(\'%s\',\'%s\',%d)",
             recv_pack->recv_name, recv_pack->send_name, recv_pack->id); //将消息写进表中
+    strcpy(recv_pack->work, "你已经删除该好友");
+    send_t(recv_pack, recv_pack->send_id);
     mysql_in_del(s);
 }
 void select_friend(pack *recv_pack)
@@ -354,8 +376,8 @@ void select_friend(pack *recv_pack)
     char s[200];
     int all;
     pthnode *t = pthead->next;
-        sprintf(s, "select recv_name,send_name from friend where recv_name=\'%s\' "
-                "union select recv_name,send_name from friend where send_name=\'%s\' ",
+    sprintf(s, "select recv_name,send_name from friend where recv_name=\'%s\' "
+               "union select recv_name,send_name from friend where send_name=\'%s\' ",
             recv_pack->send_name, recv_pack->send_name);
     pthread_mutex_lock(&lockwords);
     //memset(pthead, 0, sizeof(pthnode) * (size + 1));
@@ -500,6 +522,7 @@ int main()
                     close(ep_ids[i].data.fd);
                     node *t = head;
                     node *o;
+                    pthread_mutex_lock(&lock);
                     while (t->next != NULL)
                     {
                         if (t->next->id == ep_ids[i].data.fd)
@@ -515,6 +538,7 @@ int main()
                         }
                         t = t->next;
                     }
+                    pthread_mutex_unlock(&lock);
                     epoll_ctl(ep_fd, EPOLL_CTL_DEL, ep_ids[i].data.fd, &ep_id);
                 }
                 else

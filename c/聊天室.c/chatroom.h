@@ -27,7 +27,7 @@ typedef struct pack //定义包类型
     char send_name[10];
     int send_id;
     int id;
-    int status;    //消息状态2.删好友未发1,加好友未发，0已发
+    int status;    
     int send_nums; //账号
     int recv_nums;
     char cho; //选项选择功能

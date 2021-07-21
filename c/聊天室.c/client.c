@@ -3,7 +3,9 @@ pack *recv_pack;
 pack *send_pack;
 pthnode *pthead;
 int sock_fd;
-int tiao = 0;
+int tiao = 0;         //私聊服务器应呼应，群报选线，及recvs的统一recv
+int mes = 0;
+int allt = 0;
 pthread_mutex_t get = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t forget = PTHREAD_COND_INITIALIZER;
 pthread_cond_t toget = PTHREAD_COND_INITIALIZER;
@@ -13,6 +15,7 @@ void cli_regist();
 void cli_chuli();
 void recvs();
 void *nextst();
+void chatjuti();
 void cli_addfriend();
 void cli_delfriend();
 void cli_selfriend();
@@ -26,6 +29,36 @@ void cli_delgroup();
 void cli_selegroup();
 void cli_groupchat();
 void cli_filesned();
+void *recv_all();
+void *recv_all() //一直收包
+{
+    while (1)
+    {
+        recv_t(recv_pack, sock_fd);
+        if (strcmp(recv_pack->work, "~exit") == 0)
+            allt = 1;
+        if(allt==1)
+        exit(0);
+        printf("%s:%s\n", recv_pack->recv_name, recv_pack->work);
+    }
+}
+void chatjuti() //一直发包
+{
+    pthread_t that;
+    pthread_create(&that, NULL, recv_all, NULL);
+    pthread_detach(that);
+    while (1)
+    {
+        printf("%s:", send_pack->send_name);
+        scanf("%s", send_pack->work);
+        if (strcmp(send_pack->work, "~exit") == 0)
+            allt = 1;
+        send_t(send_pack,sock_fd);
+        if(allt==1)
+        break;
+    }
+    printf("退出聊天");
+}
 void *nextst()
 {
     while (1)
@@ -49,6 +82,10 @@ void *nextst()
         printf("%10s", "l.传输文件\n");
         printf("%10s", "j.消息中心\n");
         printf("%10s", "q.退出\n");
+        if (mes == 1)
+        {
+            printf("你有新的消息，快去消息中心处理吧\n");
+        }
         printf("----------------------------\n");
         scanf("%c%c", &send_pack->cho, &send_pack->cho);
         switch (send_pack->cho)
@@ -63,8 +100,10 @@ void *nextst()
             cli_selfriend();
             break;
         case 'g':
+        {   
             cli_chatfriend();
             break;
+        }
         // case 'h':
         //     cli_addfriend(sock_fd);
         // case 'i':
@@ -87,7 +126,10 @@ void *nextst()
             break;
         }
         default:
+        {
             printf("无效输入，请重试\n");
+            tiao--;
+        }
         }
         pthread_mutex_unlock(&get);
         if (tiao > 0)
@@ -136,24 +178,14 @@ void recvs() //一直收数据包
             // printf("%s  %d", recv_pack->work, recv_pack->status);
             break;
         }
-        case 'g': //私聊
+        case 'g':   
         {
-            while (strcmp(recv_pack->work, "~exit") != 0)
-            {
-                printf("%s:%s", recv_pack->send_name, recv_pack->work);
-                scanf("%s", send_pack->work);
-                strcpy(send_pack->recv_name, recv_pack->send_name);
-                strcpy(send_pack->send_name, recv_pack->recv_name);
-                send_pack->cho = 'g';
-                send_t(send_pack, sock_fd);
-                if (strcmp(send_pack->work, "~exit") == 0)
-                    break;
-            }
-            printf("已经退出私聊\n");
+            chatjuti();
             break;
         }
         case 'j':
         {
+            mes = 0;
             printf("你一共有%s条消息\n", recv_pack->work);
             printf("快来处理一下吧,你的消息\n");
             t = atoi(recv_pack->work);
@@ -188,10 +220,15 @@ void recvs() //一直收数据包
                     printf("%s已经同意你的好友请求\n", recv_pack->recv_name);
                     break;
                 }
-                case 6:
+                case 5:
                 {
                     printf("你已经成功加入群聊%s\n", recv_pack->recv_name);
                     break;
+                }
+                case 6:
+                {
+                     printf("聊天中..........(输入~exit,退出聊天)\n");
+                    chatjuti();
                 }
                 default:
                     break;
@@ -236,6 +273,10 @@ void recv_t(pack *s, int fd)
 {
     if (recv(fd, s, sizeof(pack), 0) < 0)
         my_err("recv", __LINE__);
+    if (s->status == 1)
+    {
+        mes = 1;
+    }
 }
 void cli_delu()
 {
@@ -281,6 +322,7 @@ void next_jiemain()
     pthread_t pid;
     strcpy(send_pack->send_name, recv_pack->send_name);
     pthread_create(&pid, NULL, nextst, NULL);
+    pthread_detach(pid);
     recvs();
 }
 int cli_sign()
@@ -298,7 +340,6 @@ int cli_sign()
     else
     {
         printf("\n登陆成功\n");
-        recv_pack->status = 1;
         return 1;
     }
 }
@@ -360,13 +401,13 @@ void cli_message()
     printf("---------消息中心----------\n");
     send_t(send_pack, sock_fd);
 }
-void cli_chatfriend() 
+void cli_chatfriend()
 {
     printf("请输入需要私聊的用户姓名：");
-    scanf("%s",send_pack->recv_name);
+    scanf("%s", send_pack->recv_name);
     printf("聊天中..........(输入~exit,退出聊天)\n");
-    printf("%s:"send_pack.send_name);
-    scanf("%s",send_pack->work);
+    printf("%s:", send_pack->send_name);
+    scanf("%s", send_pack->work);
     send_t(send_pack, sock_fd);
 }
 int main()
