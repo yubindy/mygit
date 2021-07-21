@@ -1,6 +1,6 @@
 #include "chatroom.h"
 MYSQL mysql;
-pthnode *pthead; //私聊具体实现
+pthnode *pthead;
 node *head = NULL;
 node *end = NULL;
 pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
@@ -22,14 +22,16 @@ void chat_friend(pack *recv_pack);
 void message(pack *recv_pack);
 int find_status(char *name) //查找用户在线否
 {
-    node *cname = head->next;
-    while (cname->next != NULL)
+    node *cname = head;
+    while (cname != NULL)
     {
         if (strcmp(cname->t, name) == 0)
         {
             return 1;
         }
-        cname=cname->next;
+        if(cname==NULL)
+        return 0;
+        cname = cname->next;
     }
     return 0;
 }
@@ -272,7 +274,7 @@ void registered(pack *recv_pack) //注册函数
     printf("注册成功\n");
     return;
 }
-void sign(pack *recv_pack) //登陆函数
+void sign(pack *recv_pack) //登陆函数 
 {
     char s[200];
     sprintf(s, "select username from user_all where number=%d and password=\'%s\'", recv_pack->send_nums, recv_pack->work);
@@ -286,8 +288,10 @@ void sign(pack *recv_pack) //登陆函数
     pthread_mutex_lock(&lock);
     node *p = (node *)malloc(sizeof(node));
     strcpy(p->t, recv_pack->send_name);
-    p->id=recv_pack->send_id;
+    p->id = recv_pack->send_id;
     end->next = p;
+    end=p;
+    end->next=NULL;
     pthread_mutex_unlock(&lock);
     send_t(recv_pack, recv_pack->send_id);
     printf("用户登陆成功");
@@ -318,12 +322,12 @@ void add_friend(pack *recv_pack) //加好友
             recv_pack->recv_name, recv_pack->send_name, recv_pack->id); //将消息写进表中
     mysql_in_del(s);
 }
-void del_friend(pack *recv_pack)
+void del_friend(pack *recv_pack) //删除好友
 {
     char s[200];
     int t = 0;
-    sprintf(s, "select user,friend from friend where recv_name=\'%s\'and send_name=\'%s\'union "
-               "select user,friend from friend where recv_name=\'%s\'and send_name=\'%s\'",
+    sprintf(s, "select recv_name,send_name from friend where recv_name=\'%s\'and send_name=\'%s\'union "
+               "select recv_name,send_name from friend where recv_name=\'%s\'and send_name=\'%s\'",
             recv_pack->recv_name, recv_pack->send_name, recv_pack->send_name, recv_pack->recv_name);
     if (t == mysql_select(s, recv_pack, 3))
     {
@@ -341,7 +345,7 @@ void del_friend(pack *recv_pack)
     sprintf(s, "delete from friend where recv_name=\'%s\'and send_name=\'%s\'", recv_pack->send_name, recv_pack->recv_name);
     mysql_in_del(s);
     recv_pack->id = 2;
-    sprintf(s, "insert from message(recv_name,send_name,id,status)values(\'%s\',\'%s\',%d,2)",
+    sprintf(s, "insert into message(recv_name,send_name,id)values(\'%s\',\'%s\',%d)",
             recv_pack->recv_name, recv_pack->send_name, recv_pack->id); //将消息写进表中
     mysql_in_del(s);
 }
@@ -350,11 +354,11 @@ void select_friend(pack *recv_pack)
     char s[200];
     int all;
     pthnode *t = pthead->next;
-    sprintf(s, "select recv_name,send_name from friend where recv_name=\'%s\'and send_name=\'%s\' "
-               "union select recv_name,send_name from friend where recv_name=\'%s\'and send_name=\'%s\' ",
-            recv_pack->send_name, recv_pack->recv_name, recv_pack->recv_name, recv_pack->send_name);
+        sprintf(s, "select recv_name,send_name from friend where recv_name=\'%s\' "
+                "union select recv_name,send_name from friend where send_name=\'%s\' ",
+            recv_pack->send_name, recv_pack->send_name);
     pthread_mutex_lock(&lockwords);
-    memset(pthead, 0, sizeof(pthnode) * (size + 1));
+    //memset(pthead, 0, sizeof(pthnode) * (size + 1));
     mysql_select_words(s, recv_pack, 0);
     all = mysql_select(s, recv_pack, 4);
     recv_pack->id = all;
@@ -417,15 +421,15 @@ int main()
     int lid, cid, ep_fd;
     signal(SIGPIPE, SIG_IGN);
     head = (node *)malloc(sizeof(node));
-    end=head;
+    end = head;
     pack *packs = (pack *)malloc(sizeof(pack));
     pthead = (pthnode *)malloc(sizeof(pthnode));
-    pthnode *a,*b=pthead;
-    for(int i=0;i<size;i++)
+    pthnode *a, *b = pthead;
+    for (int i = 0; i < size; i++)
     {
-        a=(pthnode*)malloc(sizeof(pthnode));
-        b->next=a;
-        b=b->next;
+        a = (pthnode *)malloc(sizeof(pthnode));
+        b->next = a;
+        b = b->next;
     }
     struct sockaddr_in client_addr, server_addr;
     lid = socket(AF_INET, SOCK_STREAM, 0);
@@ -494,22 +498,22 @@ int main()
                 else if (tsize == 0) //对端客户端关闭
                 {
                     close(ep_ids[i].data.fd);
-                    node *t=head;
+                    node *t = head;
                     node *o;
-                    while(t->next!=NULL)
-                    {  
-                        if(t->next->id==ep_ids[i].data.fd)
-                        { 
-                          if(t->next==end)
-                          {
-                              end=t;
-                          }
-                          o=t->next;
-                          t->next=t->next->next;
-                          free(o);
-                          break;
+                    while (t->next != NULL)
+                    {
+                        if (t->next->id == ep_ids[i].data.fd)
+                        {
+                            if (t->next == end)
+                            {
+                                end = t;
+                            }
+                            o = t->next;
+                            t->next = t->next->next;
+                            free(o);
+                            break;
                         }
-                        t=t->next;
+                        t = t->next;
                     }
                     epoll_ctl(ep_fd, EPOLL_CTL_DEL, ep_ids[i].data.fd, &ep_id);
                 }

@@ -82,7 +82,10 @@ void *nextst()
             exit(0);
         }
         case '\n':
+        {
+            tiao == 0;
             break;
+        }
         default:
             printf("无效输入，请重试\n");
         }
@@ -107,7 +110,6 @@ void recvs() //一直收数据包
             pthread_cond_wait(&forget, &get);
         }
         tiao = 0;
-        //printf("sdfghfdf");
         recv_t(recv_pack, sock_fd);
         switch (recv_pack->cho)
         {
@@ -123,17 +125,16 @@ void recvs() //一直收数据包
         }
         case 'f': //显示所有好友
         {
-            printf("你一共有%s个好友\n", recv_pack->work);
-            printf("  0:下线 1：在线\n");
+            printf("你一共有%s个好友(0.下线 1.上线)\n", recv_pack->work);
             t = atoi(recv_pack->work);
             for (int i = 0; i < t; i++)
             {
-                if (recv(recv_pack->send_id, pthead, sizeof(pthnode), 0) < 0)
+                if (recv(sock_fd, pthead, sizeof(pthnode), 0) < 0)
                     my_err("recv", __LINE__);
                 printf("%s  %d\n", pthead->work, pthead->status);
             }
             // printf("%s  %d", recv_pack->work, recv_pack->status);
-            // break;
+            break;
         }
         case 'g': //私聊
         {
@@ -157,6 +158,7 @@ void recvs() //一直收数据包
             printf("快来处理一下吧,你的消息\n");
             t = atoi(recv_pack->work);
             pack *retpack = (pack *)malloc(sizeof(pack)); //返回包
+            retpack->send_id = recv_pack->send_id;
             for (int i = 0; i < t; i++)
             {
                 recv(sock_fd, (void *)pthead, sizeof(pthnode), 0);
@@ -204,7 +206,7 @@ void recvs() //一直收数据包
 }
 void cli_selfriend()
 {
-    send_t(recv_pack, sock_fd);
+    send_t(send_pack, sock_fd);
     printf("--------好友列表-------\n");
 }
 void cli_addfriend()
@@ -358,12 +360,14 @@ void cli_message()
     printf("---------消息中心----------\n");
     send_t(send_pack, sock_fd);
 }
-void cli_chatfriend()
+void cli_chatfriend() 
 {
     printf("请输入需要私聊的用户姓名：");
-    scanf("%s", send_pack->recv_name);
-    send_t(send_pack, send_pack->send_id);
+    scanf("%s",send_pack->recv_name);
     printf("聊天中..........(输入~exit,退出聊天)\n");
+    printf("%s:"send_pack.send_name);
+    scanf("%s",send_pack->work);
+    send_t(send_pack, sock_fd);
 }
 int main()
 {
