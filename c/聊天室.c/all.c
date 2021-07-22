@@ -48,40 +48,61 @@ void chat_friend(pack *recv_pack) //私聊
 {
     char s[200];
     int t = 0;
-    char *er;
-    sprintf(s, "select * from friend where recv_name=\'%s\'and send_name=\'%s\'union "
-               "select * from friend where recv_name=\'%s\'and send_name=\'%s\'",
-            recv_pack->recv_name, recv_pack->send_name, recv_pack->send_name, recv_pack->recv_name);
-    if (t == mysql_select(s, recv_pack, 3)) //如果没有加好友
+    int findr;
     {
-        strcpy(recv_pack->work, "对不起，你暂时没有该好友");
-        send_t(recv_pack, recv_pack->send_id);
-        return;
-    }
-    if (strcmp(recv_pack->work, "~exit") == 0)
-    {
-        send_t(recv_pack, recv_pack->send_id);
-        return;
-    }
-    sprintf(s, "insert into friend_histroy (recv_name,send_name,words)" //加入好友历史
-               "values(\'%s\',\'%s\',\'%s\')",
-            recv_pack->recv_name, recv_pack->send_name, recv_pack->work);
-    mysql_in_del(s);
-    if (t == find_status(recv_pack->recv_name)) //如果对方不在线,加入消息表
-    {
-        sprintf(s, "insert into message(recv_name,send_name,id,words)" //id=7，好友未读消息
-                   "values(\'%s\',\'%s\',7,\'%s\')",
-                recv_pack->recv_name, recv_pack->send_name, recv_pack->work);
-        mysql_in_del(s);
-        strcpy(recv_pack->work, "对不起，该好友没有上线\n");
-        send_t(recv_pack, recv_pack->send_id);
-    }
-    else
-    {
-        sprintf(s, "insert into message(recv_name,send_name,id,works)" //id=6
-                   "values(\'%s\',\'%s\',6,\'%s\')",
-                recv_pack->recv_name, recv_pack->send_name, recv_pack->work);
-        mysql_in_del(s);
+        while(1)
+        {
+            sprintf(s, "select recv_name,words from friend_histroy where recv_name=\'%s\' status=1", recv_pack->send_name);
+            findr = mysql_select(s, recv_pack, 4);
+            if (findr == 1) //如果有，读出来
+            {
+                sprintf(s, "select words from friend_histroy where recv_name=\'%s\'and send_name=\'%s\' status=1", recv_pack->send_name, recv_pack->recv_name);
+                mysql_select(s, recv_pack, 5);
+                if (strcmp(recv_pack->work, "~exit") == 0)
+                {
+                    return;
+                }
+                send_t(recv_pack, recv_pack->id);
+                sprintf(s, "update friend_histroy set status=0 where recv_name=\'%s\' and words=\'%s\'", recv_pack->send_name, recv_pack->work);
+                return;
+            }
+            else //如果无，写进去
+            {
+                sprintf(s, "select * from friend where recv_name=\'%s\'and send_name=\'%s\'union "
+                           "select * from friend where recv_name=\'%s\'and send_name=\'%s\'",
+                        recv_pack->recv_name, recv_pack->send_name, recv_pack->send_name, recv_pack->recv_name);
+                if (t == mysql_select(s, recv_pack, 3)) //如果没有加好友
+                {
+                    strcpy(recv_pack->work, "对不起，你暂时没有该好友");
+                    send_t(recv_pack, recv_pack->send_id);
+                    return;
+                }
+                if (strcmp(recv_pack->work, "~exit") == 0)
+                {
+                    return;
+                }
+                sprintf(s, "insert into friend_histroy (recv_name,send_name,status,words)" //加入好友历史
+                           "values(\'%s\',\'%s\',1,\'%s\')",
+                        recv_pack->recv_name, recv_pack->send_name, recv_pack->work);
+                mysql_in_del(s);
+                if (t == find_status(recv_pack->recv_name)) //如果对方不在线,加入消息表
+                {
+                    sprintf(s, "insert into message(recv_name,send_name,id,words)" //id=7，好友未读消息
+                               "values(\'%s\',\'%s\',7,\'%s\')",
+                            recv_pack->recv_name, recv_pack->send_name, recv_pack->work);
+                    mysql_in_del(s);
+                    strcpy(recv_pack->work, "对不起，该好友没有上线\n");
+                    send_t(recv_pack, recv_pack->send_id);
+                }
+                else
+                {
+                    sprintf(s, "insert into message(recv_name,send_name,id,works)" //id=6
+                               "values(\'%s\',\'%s\',6,\'%s\')",
+                            recv_pack->recv_name, recv_pack->send_name, recv_pack->work);
+                    mysql_in_del(s);
+                }
+            }
+        }
     }
 }
 void mysql_select_words(char *buf, pack *recv_pack, int t) //查询多条信息,写入链表
@@ -127,8 +148,9 @@ void mysql_select_words(char *buf, pack *recv_pack, int t) //查询多条信息,
                 {
                     if (row[i])
                     {
-                        strcpy(s->work, (void *)row[i]);
+                        strcpy(s->name, (void *)row[i]);
                         s->status = atoi(row[i + 1]);
+                        strcpy(s->work, row[i + 2]);
                         s = s->next;
                     }
                     break;
@@ -256,6 +278,16 @@ int mysql_select(char *buf, pack *recv_pack, int t) //数据库查询单条消�
                         //只要能找到数据，就正确
                         mysql_free_result(result);
                         return 1;
+                    }
+                    case 4:
+                    {
+                        strcpy(recv_pack->recv_name, row[i]);
+                        return 1;
+                    }
+                    case 5:
+                    {
+                        strcpy(recv_pack->work, row[i]);
+                        return 0;
                     }
                     default:
                         break;
@@ -401,7 +433,7 @@ void message(pack *recv_pack) //消息中心
     int number;
     int all;
     pthnode *t = pthead->next;
-    sprintf(s, "select send_name,id from message where recv_name=\'%s\'and id>0", recv_pack->send_name);
+    sprintf(s, "select send_name,id,works from message where recv_name=\'%s\'and id>0", recv_pack->send_name);
     pthread_mutex_lock(&lockwords);
     mysql_select_words(s, recv_pack, 1);
     pthread_mutex_unlock(&lockwords);
@@ -439,6 +471,7 @@ void message(pack *recv_pack) //消息中心
     }
 }
 int main()
+
 {
     int lid, cid, ep_fd;
     signal(SIGPIPE, SIG_IGN);
