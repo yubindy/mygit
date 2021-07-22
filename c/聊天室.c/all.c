@@ -44,65 +44,68 @@ int find_status(char *name) //查找用户在线否
     }
     return 0;
 }
-void chat_friend(pack *recv_pack) //私聊
+void chat_friend(pack *recv_pack) //私聊   //没有写进去，所以没有
 {
     char s[200];
     int t = 0;
-    int findr;
+    int findr = 0;
+    while (1)
     {
-        while(1)
+        sprintf(s, "select send_name,words from friend_histroy where recv_name=\'%s\'and status=1", recv_pack->send_name);
+        findr = mysql_select(s, recv_pack, 5);
+        if (findr > 0) //如果有，读出来
         {
-            sprintf(s, "select recv_name,words from friend_histroy where recv_name=\'%s\' status=1", recv_pack->send_name);
-            findr = mysql_select(s, recv_pack, 4);
-            if (findr == 1) //如果有，读出来
+            if (strcmp(recv_pack->work, "~exit") == 0)
             {
-                sprintf(s, "select words from friend_histroy where recv_name=\'%s\'and send_name=\'%s\' status=1", recv_pack->send_name, recv_pack->recv_name);
-                mysql_select(s, recv_pack, 5);
-                if (strcmp(recv_pack->work, "~exit") == 0)
-                {
-                    return;
-                }
-                send_t(recv_pack, recv_pack->id);
-                sprintf(s, "update friend_histroy set status=0 where recv_name=\'%s\' and words=\'%s\'", recv_pack->send_name, recv_pack->work);
                 return;
             }
-            else //如果无，写进去
+            send_t(recv_pack, recv_pack->send_id);
+            sprintf(s, "update friend_histroy set status=0 where recv_name=\'%s\' and words=\'%s\'"
+            , recv_pack->send_name, recv_pack->work);
+        }
+        else //如果无，写进去
+        {
+            sprintf(s, "select * from friend where recv_name=\'%s\'and send_name=\'%s\'union "
+                       "select * from friend where recv_name=\'%s\'and send_name=\'%s\'",
+                    recv_pack->recv_name, recv_pack->send_name, recv_pack->send_name, recv_pack->recv_name);
+            if (t == mysql_select(s, recv_pack, 3)) //如果没有加好友
             {
-                sprintf(s, "select * from friend where recv_name=\'%s\'and send_name=\'%s\'union "
-                           "select * from friend where recv_name=\'%s\'and send_name=\'%s\'",
-                        recv_pack->recv_name, recv_pack->send_name, recv_pack->send_name, recv_pack->recv_name);
-                if (t == mysql_select(s, recv_pack, 3)) //如果没有加好友
-                {
-                    strcpy(recv_pack->work, "对不起，你暂时没有该好友");
-                    send_t(recv_pack, recv_pack->send_id);
-                    return;
-                }
-                if (strcmp(recv_pack->work, "~exit") == 0)
-                {
-                    return;
-                }
-                sprintf(s, "insert into friend_histroy (recv_name,send_name,status,words)" //加入好友历史
-                           "values(\'%s\',\'%s\',1,\'%s\')",
+                strcpy(recv_pack->work, "对不起，你暂时没有该好友");
+                send_t(recv_pack, recv_pack->send_id);
+                return;
+            }
+            if (strcmp(recv_pack->work, "~exit") == 0)
+            {
+                return;
+            }
+            sprintf(s, "insert into friend_histroy (recv_name,send_name,status,words)" //加入好友历史
+                       "values(\'%s\',\'%s\',1,\'%s\')",
+                    recv_pack->recv_name, recv_pack->send_name, recv_pack->work);
+            mysql_in_del(s);
+            if (t == find_status(recv_pack->recv_name)) //如果对方不在线,加入消息表
+            {
+                sprintf(s, "insert into message(recv_name,send_name,id,words)" //id=7，好友未读消息
+                           "values(\'%s\',\'%s\',7,\'%s\')",
                         recv_pack->recv_name, recv_pack->send_name, recv_pack->work);
                 mysql_in_del(s);
-                if (t == find_status(recv_pack->recv_name)) //如果对方不在线,加入消息表
-                {
-                    sprintf(s, "insert into message(recv_name,send_name,id,words)" //id=7，好友未读消息
-                               "values(\'%s\',\'%s\',7,\'%s\')",
-                            recv_pack->recv_name, recv_pack->send_name, recv_pack->work);
-                    mysql_in_del(s);
-                    strcpy(recv_pack->work, "对不起，该好友没有上线\n");
-                    send_t(recv_pack, recv_pack->send_id);
-                }
-                else
-                {
-                    sprintf(s, "insert into message(recv_name,send_name,id,works)" //id=6
-                               "values(\'%s\',\'%s\',6,\'%s\')",
-                            recv_pack->recv_name, recv_pack->send_name, recv_pack->work);
-                    mysql_in_del(s);
-                }
+                strcpy(recv_pack->work, "对不起，该好友没有上线\n");
+                send_t(recv_pack, recv_pack->send_id);
+            }
+            else
+            {
+                sprintf(s, "insert into message(recv_name,send_name,id,works)" //id=6
+                           "values(\'%s\',\'%s\',6,\'%s\')",
+                        recv_pack->recv_name, recv_pack->send_name, recv_pack->work);
+                mysql_in_del(s);
             }
         }
+        //循环查
+        sprintf(s, "select * from friend_histroy where recv_name=\'%s\' and send_name=\'%s\'", recv_pack->send_name, recv_pack->recv_name);
+        while (mysql_select(s, recv_pack, 3) == 1)
+        {
+            //如果查到新的数据，进入循环
+        }
+        recv_t(recv_pack, recv_pack->send_id);
     }
 }
 void mysql_select_words(char *buf, pack *recv_pack, int t) //查询多条信息,写入链表
@@ -280,15 +283,16 @@ int mysql_select(char *buf, pack *recv_pack, int t) //数据库查询单条消�
                         mysql_free_result(result);
                         return 1;
                     }
-                    case 4:
+                    case 6:
                     {
                         strcpy(recv_pack->recv_name, row[i]);
                         return 1;
                     }
                     case 5:
                     {
-                        strcpy(recv_pack->work, row[i]);
-                        return 0;
+                        strcpy(recv_pack->recv_name, row[i]);
+                        strcpy(recv_pack->work, row[i + 1]);
+                        return 1;
                     }
                     default:
                         break;
