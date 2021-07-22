@@ -202,6 +202,7 @@ void *body(void *arg)
         break;
     case 'f':
         select_friend(recv_pack);
+        break;
     case 'g':
         chat_friend(recv_pack);
         break;
