@@ -4,6 +4,9 @@ pthnode *pthead;
 int mes = 0;
 node *head = NULL;
 node *end = NULL;
+infonode *ifhead = NULL;
+pthread_mutex_t fchat = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t mysqs = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t lockwords = PTHREAD_MUTEX_INITIALIZER;
 void panduan_message(pack *recv_pack);
@@ -22,6 +25,20 @@ void del_friend(pack *recv_pack);
 void select_friend(pack *recv_pack);
 void chat_friend(pack *recv_pack);
 void message(pack *recv_pack);
+infonode *find_info(char *s);
+infonode *find_info(char *s)
+{
+    infonode *t = ifhead;
+    while (t->next != NULL)
+    {
+        if (strcmp(s, t->name) == 0)
+            return t;
+        t = t->next;
+    }
+    if (strcmp(s, t->name) == 0)
+        return t;
+    return NULL;
+}
 void panduan_message(pack *recv_pack) //判断该对应用户，是否有消息
 {
     char s[200];
@@ -44,24 +61,37 @@ int find_status(char *name) //查找用户在线否
     }
     return 0;
 }
-void chat_friend(pack *recv_pack) //私聊   //没有写进去，所以没有
+void chat_friend(pack *recv_pack) //私聊
 {
     char s[200];
     int t = 0;
     int findr = 0;
+    infonode *recv, *send;
+    recv;
+    send;
+    recv = find_info(recv_pack->send_name);
     while (1)
     {
         sprintf(s, "select send_name,words from friend_histroy where recv_name=\'%s\'and status=1", recv_pack->send_name);
         findr = mysql_select(s, recv_pack, 5);
         if (findr > 0) //如果有，读出来
         {
+            send_t(recv_pack, recv_pack->send_id);
+            pthread_mutex_lock(&fchat);
+            recv->send_id--;
+            pthread_mutex_unlock(&fchat);
+            sprintf(s, "update friend_histroy set status=0 where recv_name=\'%s\' and words=\'%s\'", recv_pack->send_name, recv_pack->work);
+            mysql_in_del(s);
             if (strcmp(recv_pack->work, "~exit") == 0)
             {
+                sprintf(s, "update message set id=0 where recv_name=\'%s\'and send_name=\'%s\'",
+                        recv_pack->recv_name, recv_pack->send_name);
+                mysql_in_del(s);
+                sprintf(s, "update message set id=0 where send_name=\'%s\'and recv_name=\'%s\'",
+                        recv_pack->recv_name, recv_pack->send_name);
+                mysql_in_del(s);
                 return;
             }
-            send_t(recv_pack, recv_pack->send_id);
-            sprintf(s, "update friend_histroy set status=0 where recv_name=\'%s\' and words=\'%s\'"
-            , recv_pack->send_name, recv_pack->work);
         }
         else //如果无，写进去
         {
@@ -74,17 +104,13 @@ void chat_friend(pack *recv_pack) //私聊   //没有写进去，所以没有
                 send_t(recv_pack, recv_pack->send_id);
                 return;
             }
-            if (strcmp(recv_pack->work, "~exit") == 0)
-            {
-                return;
-            }
             sprintf(s, "insert into friend_histroy (recv_name,send_name,status,words)" //加入好友历史
                        "values(\'%s\',\'%s\',1,\'%s\')",
                     recv_pack->recv_name, recv_pack->send_name, recv_pack->work);
             mysql_in_del(s);
             if (t == find_status(recv_pack->recv_name)) //如果对方不在线,加入消息表
             {
-                sprintf(s, "insert into message(recv_name,send_name,id,words)" //id=7，好友未读消息
+                sprintf(s, "insert into message(recv_name,send_name,id,works)" //id=7，好友未读消息
                            "values(\'%s\',\'%s\',7,\'%s\')",
                         recv_pack->recv_name, recv_pack->send_name, recv_pack->work);
                 mysql_in_del(s);
@@ -97,15 +123,28 @@ void chat_friend(pack *recv_pack) //私聊   //没有写进去，所以没有
                            "values(\'%s\',\'%s\',6,\'%s\')",
                         recv_pack->recv_name, recv_pack->send_name, recv_pack->work);
                 mysql_in_del(s);
+                send = find_info(recv_pack->recv_name);
+                pthread_mutex_lock(&fchat);
+                send->send_id++;
+                pthread_mutex_unlock(&fchat);
+                if (strcmp(recv_pack->work, "~exit") == 0)
+                {
+                    sprintf(s, "update message set id=0 where recv_name=\'%s\'and send_name=\'%s\'",
+                            recv_pack->recv_name, recv_pack->send_name);
+                    mysql_in_del(s);
+                    sprintf(s, "update message set id=0 where send_name=\'%s\'and recv_name=\'%s\'",
+                            recv_pack->recv_name, recv_pack->send_name);
+                    mysql_in_del(s);
+                    return;
+                }
             }
         }
-        //循环查
-        sprintf(s, "select * from friend_histroy where recv_name=\'%s\' and send_name=\'%s\'", recv_pack->send_name, recv_pack->recv_name);
-        while (mysql_select(s, recv_pack, 3) == 1)
+        while (1)
         {
-            //如果查到新的数据，进入循环
+            if (recv->send_id > 0)
+                break;
+            sleep(1);
         }
-        recv_t(recv_pack, recv_pack->send_id);
     }
 }
 void mysql_select_words(char *buf, pack *recv_pack, int t) //查询多条信息,写入链表
@@ -115,19 +154,25 @@ void mysql_select_words(char *buf, pack *recv_pack, int t) //查询多条信息,
     MYSQL_ROW row;
     MYSQL_FIELD *field;
     pthnode *s = pthead->next;
+    pthread_mutex_lock(&mysqs);
     flag = mysql_query(&mysql, buf);
     if (flag)
     {
         mysql_error(&mysql);
     }
     result = mysql_store_result(&mysql);
+    pthread_mutex_unlock(&mysqs);
+    printf("buf:%s\n", buf);
     if (result)
     {
         int number = mysql_num_rows(result);
+        printf("number:%d\n", number);
+        printf("cont:%d\n", mysql_field_count(&mysql));
         if (t == 0)
         {
             while ((row = mysql_fetch_row(result)) != 0)
             {
+                printf("here1 :%lld\n", pthread_self());
                 for (unsigned int i = 0; i < mysql_num_fields(result); i++)
                 {
                     if (row[i])
@@ -153,6 +198,7 @@ void mysql_select_words(char *buf, pack *recv_pack, int t) //查询多条信息,
                     {
                         strcpy(s->name, (void *)row[i]);
                         s->status = atoi(row[i + 1]);
+                        if(row[i+2]!=NULL)
                         strcpy(s->work, row[i + 2]);
                         s = s->next;
                     }
@@ -233,12 +279,14 @@ int mysql_select(char *buf, pack *recv_pack, int t) //数据库查询单条消�
     MYSQL_ROW row;
     MYSQL_FIELD *field;
     int number = 0;
+    pthread_mutex_lock(&mysqs);
     flag = mysql_query(&mysql, buf);
     if (flag)
     {
         mysql_error(&mysql);
     }
     result = mysql_store_result(&mysql);
+    pthread_mutex_unlock(&mysqs);
     if (result)
     {
         // while ((field = mysql_fetch_field(result)) != 0)   查看表头
@@ -356,6 +404,17 @@ void sign(pack *recv_pack) //登陆函数
     end->next = NULL;
     pthread_mutex_unlock(&lock);
     send_t(recv_pack, recv_pack->send_id);
+    infonode *pe, *qe;
+    pe = ifhead;
+    while (pe->next != NULL)
+    {
+        pe = pe->next;
+    }
+    qe = (infonode *)malloc(sizeof(infonode));
+    strcpy(qe->name, recv_pack->send_name);
+    qe->send_id = 0;
+    pe->next = qe;
+    qe->next = NULL;
     printf("用户登陆成功");
 }
 void find_words(pack *recv_pack) //找回密码
@@ -481,6 +540,7 @@ int main()
     int lid, cid, ep_fd;
     signal(SIGPIPE, SIG_IGN);
     head = (node *)malloc(sizeof(node));
+    ifhead = (infonode *)malloc(sizeof(infonode));
     end = head;
     pack *packs = (pack *)malloc(sizeof(pack));
     pthead = (pthnode *)malloc(sizeof(pthnode));

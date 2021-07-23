@@ -45,8 +45,15 @@ typedef struct pthnode  //保存信息的链表
 {
     char work[50];   //存储历史或好友名字的字符串
     int status;  //好友状态
+    int name[20];
     struct pthnode* next;
 }pthnode;
+typedef struct infonode  //私聊中收集信息的链表
+{
+     char name[10];
+     int send_id;
+     struct infonode *next;
+}infonode;
 extern MYSQL mysql;
 const char right[20] = "yes you are right";
 void my_err(char *err_string, int line);
