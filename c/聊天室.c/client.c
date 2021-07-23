@@ -3,7 +3,7 @@ pack *recv_pack;
 pack *send_pack;
 pthnode *pthead;
 int sock_fd;
-int tiao = 0; 
+int tiao = 0;
 int mes = 0;
 int cf = 0;
 int first = 0;
@@ -32,27 +32,32 @@ void cli_delgroup();
 void cli_selegroup();
 void cli_groupchat();
 void cli_filesned();
-void *recv_all();
+void friend_histroy();
 void chatjuti() //
 {
     //pthread_t that;
     // pthread_create(&that, NULL, recv_all, NULL);
     //pthread_detach(that);
     while (1)
-    {   
+    {
         if (strcmp(recv_pack->work, "~exit") == 0)
-          break;
+            break;
         printf("%s:%s\n", recv_pack->recv_name, recv_pack->work);
-        strcpy(send_pack->send_name,recv_pack->send_name);
-        strcpy(send_pack->recv_name,recv_pack->recv_name);
-        printf("%s:",recv_pack->send_name);
-        scanf("%s",send_pack->work);
-        send_t(send_pack,sock_fd);
+        strcpy(send_pack->send_name, recv_pack->send_name);
+        strcpy(send_pack->recv_name, recv_pack->recv_name);
+        printf("%s:", recv_pack->send_name);
+        scanf("%s", send_pack->work);
+        send_t(send_pack, sock_fd);
         if (strcmp(send_pack->work, "~exit") == 0)
-          break;
+            break;
         recv_t(recv_pack, sock_fd);
     }
     printf("退出聊天");
+}
+void friend_histroy()
+{
+    printf("需要查看的好友:%s");
+    scanf("%s",send_pack->recv_name);
 }
 void *nextst()
 {
@@ -72,10 +77,12 @@ void *nextst()
         printf("%10s", "g.私聊\n");
         printf("%10s", "h.创建群\n");
         printf("%10s", "i.退群\n");
-        printf("%10s", "j.显示所有群\n");
+        printf("%10s", "m.显示所有群\n");
         printf("%10s", "k.群聊\n");
         printf("%10s", "l.传输文件\n");
         printf("%10s", "j.消息中心\n");
+        printf("%10s", "n.查看好友历史\n");
+        printf("%10s", "m.查看群消息\n");
         printf("%10s", "q.退出\n");
         if (mes == 1)
         {
@@ -110,6 +117,8 @@ void *nextst()
         case 'j':
             cli_message();
             break;
+        case  'n':
+            friend_histroy();
         case 'q':
         {
             close(sock_fd);
@@ -178,6 +187,17 @@ void recvs() //收数据包
             chatjuti();
             break;
         }
+        case 'n':
+        {
+            printf("一共有%s条消息",recv_pack->id);
+            int sum=recv_pack->id;
+            for(int i=0;i<sum;i++)
+            {
+                recv(sock_fd, (void *)pthead, sizeof(pthnode), 0);
+                printf("%s:%s",pthead->name,pthead->work);
+            }
+            break;
+        }
         case 'j':
         {
             mes = 0;
@@ -223,7 +243,7 @@ void recvs() //收数据包
                 case 6:
                 {
                     cf = 1;
-                    printf("有你的私聊消息，去私聊中看看吧 from:%s",pthead->name);
+                    printf("有你的私聊消息，去私聊中看看吧 from:%s", pthead->name);
                 }
                 default:
                     break;

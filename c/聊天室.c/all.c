@@ -25,6 +25,7 @@ void del_friend(pack *recv_pack);
 void select_friend(pack *recv_pack);
 void chat_friend(pack *recv_pack);
 void message(pack *recv_pack);
+void fri_histroy(pack *recv_pack);
 infonode *find_info(char *s);
 infonode *find_info(char *s)
 {
@@ -162,12 +163,12 @@ void mysql_select_words(char *buf, pack *recv_pack, int t) //查询多条信息,
     }
     result = mysql_store_result(&mysql);
     pthread_mutex_unlock(&mysqs);
-    printf("buf:%s\n", buf);
+    // printf("buf:%s\n", buf);
     if (result)
     {
         int number = mysql_num_rows(result);
-        printf("number:%d\n", number);
-        printf("cont:%d\n", mysql_field_count(&mysql));
+        // printf("number:%d\n", number);
+        // printf("cont:%d\n", mysql_field_count(&mysql));
         if (t == 0)
         {
             while ((row = mysql_fetch_row(result)) != 0)
@@ -198,14 +199,30 @@ void mysql_select_words(char *buf, pack *recv_pack, int t) //查询多条信息,
                     {
                         strcpy(s->name, (void *)row[i]);
                         s->status = atoi(row[i + 1]);
-                        if(row[i+2]!=NULL)
-                        strcpy(s->work, row[i + 2]);
+                        if (row[i + 2] != NULL)
+                            strcpy(s->work, row[i + 2]);
                         s = s->next;
                     }
                     break;
                 }
             }
             sprintf(recv_pack->work, "%d", number);
+        }
+        else if (t == 3)
+        {
+            while ((row = mysql_fetch_row(result)) != 0)
+            {
+                for (unsigned int i = 0; i < mysql_num_fields(result); i++)
+                {
+                    if (row[i])
+                    {
+                        strcpy(s->name, (void *)row[i]);
+                        strcpy(s->work, row[i + 1]);
+                        s = s->next;
+                    }
+                    break;
+                }
+            }
         }
     }
     mysql_free_result(result);
@@ -467,6 +484,35 @@ void del_friend(pack *recv_pack) //删除好友
     send_t(recv_pack, recv_pack->send_id);
     mysql_in_del(s);
 }
+void fri_histroy(pack *recv_pack) //查看好友历史
+{
+    char s[200];
+    int t = 0;
+     pthnode *p = pthead->next;
+    sprintf(s, "select * from friend where recv_name=\'%s\'and send_name=\'%s\'union "
+               "select * from friend where recv_name=\'%s\'and send_name=\'%s\'",
+            recv_pack->recv_name, recv_pack->send_name, recv_pack->send_name, recv_pack->recv_name);
+    if (t == mysql_select(s, recv_pack, 3)) //如果没有加好友
+    {
+        strcpy(recv_pack->work, "对不起，你暂时没有该好友");
+        send_t(recv_pack, recv_pack->send_id);
+        return;
+    }
+    sprintf(s, "select send_name,words from friend_histroy where recv_name=\'%s\'and send_name=\'%s\'union "
+               "select send_name,words from friend_histroy where recv_name=\'%s\'and send_name=\'%s\'",
+            recv_pack->recv_name, recv_pack->send_name, recv_pack->send_name, recv_pack->recv_name);
+    recv_pack->id = mysql_select(s, recv_pack, 4);
+    t=recv_pack->id;
+    send_t(recv_pack, recv_pack->send_id);
+    pthread_mutex_lock(&lockwords);
+    mysql_select_words(s, recv_pack, 3);
+    for(int i=0;i<t;i++)
+    {
+        send(recv_pack->send_id, (void *)t, sizeof(pthnode), 0); //每次发送1个节点的数据
+        t=t->next;
+    }
+    pthread_mutex_unlock(&lockwords);
+}
 void select_friend(pack *recv_pack)
 {
     char s[200];
@@ -500,7 +546,6 @@ void message(pack *recv_pack) //消息中心
     sprintf(s, "select send_name,id,works from message where recv_name=\'%s\'and id>0", recv_pack->send_name);
     pthread_mutex_lock(&lockwords);
     mysql_select_words(s, recv_pack, 1);
-    pthread_mutex_unlock(&lockwords);
     all = atoi(recv_pack->work);
     sprintf(s, "select send_name,id from message where recv_name=\'%s\'and id=1",
             recv_pack->send_name);
@@ -533,6 +578,7 @@ void message(pack *recv_pack) //消息中心
         }
         t = t->next;
     }
+    pthread_mutex_unlock(&lockwords);
 }
 int main()
 
