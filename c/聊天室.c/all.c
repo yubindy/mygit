@@ -26,7 +26,42 @@ void select_friend(pack *recv_pack);
 void chat_friend(pack *recv_pack);
 void message(pack *recv_pack);
 void fri_histroy(pack *recv_pack);
+void create_group(pack *recv_pack);
+void del_group(pack *recv_pack);
+void allgroup(pack *recv_pack);
+void groupmember(pack *recv_pack);
 infonode *find_info(char *s);
+void allgroup(pack *recv_pack)  //查看所有群
+{
+    char s[200];
+
+}
+void create_group(pack *recv_pack) //创建群
+{
+    char s[200];
+    sprintf(s, "insert into groups(group_name,name,status)values(\'%s\',\'%S\',,2)",
+            recv_pack->recv_name, recv_pack->send_name);
+    mysql_in_del(s);
+    sprintf(s, "select id from groups where group_name=\'%s\'", recv_pack->recv_name);
+    mysql_select(s, recv_pack, 0);
+    strcpy(recv_pack->work, "创建群成功");
+    send_t(recv_pack, recv_pack->send_id);
+}
+void del_group(pack *recv_pack) //退出群
+{
+    char s[200];
+    sprintf(s, "select * from groups where id=%d", recv_pack->id);
+    if (mysql_select(s, recv_pack, 3) < 0)
+    {
+        strcpy(recv_pack->work, "你的群聊中不存在该群");
+        send_t(recv_pack, recv_pack->send_id);
+        return;
+    }
+    sprintf(s, "delete from groups where id=%d and name=\'%s\'", recv_pack->id, recv_pack->send_name);
+    mysql_in_del(s);
+    strcpy(recv_pack->work, "成功退出该群");
+    send_t(recv_pack, recv_pack->send_id);
+}
 infonode *find_info(char *s)
 {
     infonode *t = ifhead;
@@ -275,6 +310,21 @@ void *body(void *arg)
     case 'j':
         message(recv_pack);
         break;
+    case 'h':
+        create_group(recv_pack);
+        break;
+    case 'i':
+        del_group(recv_pack);
+        break;
+    case 'n':
+        fri_histroy(recv_pack);
+        break;
+    // case 'o':
+    //     allgroup(recv_pack);
+    //     break;
+    // case 'p':
+    //     groupmember(recv_pack);
+    //     break;
     default:
         break;
     }
@@ -488,7 +538,7 @@ void fri_histroy(pack *recv_pack) //查看好友历史
 {
     char s[200];
     int t = 0;
-     pthnode *p = pthead->next;
+    pthnode *p = pthead->next;
     sprintf(s, "select * from friend where recv_name=\'%s\'and send_name=\'%s\'union "
                "select * from friend where recv_name=\'%s\'and send_name=\'%s\'",
             recv_pack->recv_name, recv_pack->send_name, recv_pack->send_name, recv_pack->recv_name);
@@ -502,14 +552,14 @@ void fri_histroy(pack *recv_pack) //查看好友历史
                "select send_name,words from friend_histroy where recv_name=\'%s\'and send_name=\'%s\'",
             recv_pack->recv_name, recv_pack->send_name, recv_pack->send_name, recv_pack->recv_name);
     recv_pack->id = mysql_select(s, recv_pack, 4);
-    t=recv_pack->id;
+    t = recv_pack->id;
     send_t(recv_pack, recv_pack->send_id);
     pthread_mutex_lock(&lockwords);
     mysql_select_words(s, recv_pack, 3);
-    for(int i=0;i<t;i++)
+    for (int i = 0; i < t; i++)
     {
-        send(recv_pack->send_id, (void *)t, sizeof(pthnode), 0); //每次发送1个节点的数据
-        t=t->next;
+        send(recv_pack->send_id, (void *)p, sizeof(pthnode), 0); //每次发送1个节点的数据
+        p=p->next;
     }
     pthread_mutex_unlock(&lockwords);
 }
