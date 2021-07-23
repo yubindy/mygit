@@ -32,12 +32,25 @@ void cli_delgroup();
 void cli_selegroup();
 void cli_groupchat();
 void cli_filesned();
+void cli_creagroup();
+void cli_delgroup();
 void friend_histroy();
-void chatjuti() //
+void cli_allgroup();
+void cli_groupmember();
+void cli_creagroup() //创群
 {
-    //pthread_t that;
-    // pthread_create(&that, NULL, recv_all, NULL);
-    //pthread_detach(that);
+    printf("创建群名:");
+    scanf("%s",send_pack->recv_name);
+    send_t(send_pack, sock_fd);
+}
+void cli_delgroup() //退群
+{
+    printf("需要退出的群号：");
+    scanf("%d", &send_pack->id);
+    send_t(send_pack, sock_fd);
+}
+void chatjuti()
+{
     while (1)
     {
         if (strcmp(recv_pack->work, "~exit") == 0)
@@ -56,8 +69,9 @@ void chatjuti() //
 }
 void friend_histroy()
 {
-    printf("需要查看的好友:%s");
-    scanf("%s",send_pack->recv_name);
+    printf("需要查看的好友:");
+    scanf("%s", send_pack->recv_name);
+    send_t(send_pack,sock_fd);
 }
 void *nextst()
 {
@@ -77,7 +91,9 @@ void *nextst()
         printf("%10s", "g.私聊\n");
         printf("%10s", "h.创建群\n");
         printf("%10s", "i.退群\n");
-        printf("%10s", "m.显示所有群\n");
+        printf("%10s", "o.显示所有群\n");
+        printf("%10s", "p.显示群成员\n");
+        printf("%10s", "q.群权限管理\n");
         printf("%10s", "k.群聊\n");
         printf("%10s", "l.传输文件\n");
         printf("%10s", "j.消息中心\n");
@@ -106,19 +122,24 @@ void *nextst()
             cli_chatfriend();
             break;
         }
-        // case 'h':
-        //     cli_addfriend(sock_fd);
-        // case 'i':
-        //     cli_addfriend(sock_fd);
-        // case 'j':
-        //     cli_addfriend(sock_fd);
-        // case 'l':
-        //     cli_addfriend(sock_fd);
+        case 'h':
+            cli_creagroup();
+            break;
+        case 'i':
+            cli_delgroup();
+            break;
+        case 'o':
+            cli_allgroup();
+            break;
+        case 'p':
+            cli_groupmember();
+            break;
         case 'j':
             cli_message();
             break;
-        case  'n':
+        case 'n':
             friend_histroy();
+            break;
         case 'q':
         {
             close(sock_fd);
@@ -142,6 +163,18 @@ void *nextst()
         }
     }
     return NULL;
+}
+void cli_allgroup()
+{
+    printf("-----所有群聊-----\n");
+    send_t(recv_pack,recv_pack->send_id);
+}
+void cli_groupmember()
+{   
+    printf("需要查看群成员的群号:\n");
+    scanf("%d",&recv_pack->id);
+    printf("-----所有群群成员-----\n");
+    send_t(recv_pack,recv_pack->send_id);
 }
 void recvs() //收数据包
 {
@@ -187,14 +220,25 @@ void recvs() //收数据包
             chatjuti();
             break;
         }
+        case 'h':
+        {
+            printf("%s", recv_pack->work);
+            printf("群名：%s 群号：%d\n", recv_pack->recv_name, recv_pack->send_nums);
+            break;
+        }
+        case 'i':
+        {
+            printf("%s\n", recv_pack->work);
+            break;
+        }
         case 'n':
         {
-            printf("一共有%s条消息",recv_pack->id);
-            int sum=recv_pack->id;
-            for(int i=0;i<sum;i++)
+            printf("一共有%d条消息\n", recv_pack->id);
+            int sum = recv_pack->id;
+            for (int i = 0; i < sum; i++)
             {
                 recv(sock_fd, (void *)pthead, sizeof(pthnode), 0);
-                printf("%s:%s",pthead->name,pthead->work);
+                printf("%s:%s\n", pthead->name, pthead->work);
             }
             break;
         }
@@ -243,7 +287,12 @@ void recvs() //收数据包
                 case 6:
                 {
                     cf = 1;
-                    printf("有你的私聊消息，去私聊中看看吧 from:%s", pthead->name);
+                    printf("有你的私聊消息，去私聊中看看吧 from:%s\n", pthead->name);
+                    break;
+                }
+                case 7:
+                {
+                    printf("你的离线时收到%s:%s\n", pthead->name, pthead->work);
                 }
                 default:
                     break;

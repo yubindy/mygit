@@ -31,15 +31,14 @@ void del_group(pack *recv_pack);
 void allgroup(pack *recv_pack);
 void groupmember(pack *recv_pack);
 infonode *find_info(char *s);
-void allgroup(pack *recv_pack)  //查看所有群
+void allgroup(pack *recv_pack) //查看所有群
 {
     char s[200];
-
 }
 void create_group(pack *recv_pack) //创建群
 {
     char s[200];
-    sprintf(s, "insert into groups(group_name,name,status)values(\'%s\',\'%S\',,2)",
+    sprintf(s, "insert into groups(group_name,name,status)values(\'%s\',\'%s\',2)",
             recv_pack->recv_name, recv_pack->send_name);
     mysql_in_del(s);
     sprintf(s, "select id from groups where group_name=\'%s\'", recv_pack->recv_name);
@@ -57,7 +56,8 @@ void del_group(pack *recv_pack) //退出群
         send_t(recv_pack, recv_pack->send_id);
         return;
     }
-    sprintf(s, "delete from groups where id=%d and name=\'%s\'", recv_pack->id, recv_pack->send_name);
+    sprintf(s, "delete from groups where id=%d and name=\'%s\'",
+            recv_pack->id, recv_pack->send_name);
     mysql_in_del(s);
     strcpy(recv_pack->work, "成功退出该群");
     send_t(recv_pack, recv_pack->send_id);
@@ -559,7 +559,7 @@ void fri_histroy(pack *recv_pack) //查看好友历史
     for (int i = 0; i < t; i++)
     {
         send(recv_pack->send_id, (void *)p, sizeof(pthnode), 0); //每次发送1个节点的数据
-        p=p->next;
+        p = p->next;
     }
     pthread_mutex_unlock(&lockwords);
 }
