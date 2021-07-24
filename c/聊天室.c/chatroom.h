@@ -54,6 +54,12 @@ typedef struct infonode  //私聊中收集信息的链表
      int send_id;
      struct infonode *next;
 }infonode;
+typedef struct groupnode
+{
+    char name[10]; 
+    int id;       //群id
+    struct groupnode *next;
+}groupnode;
 extern MYSQL mysql;
 const char right[20] = "yes you are right";
 void my_err(char *err_string, int line);
