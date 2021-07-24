@@ -1,7 +1,7 @@
 #include "chatroom.h"
 MYSQL mysql;
 pthnode *pthead;
-int mes = 0;
+int mes = 0;      //message的群消息和个人交互出现问题，容易错误
 node *head = NULL;
 node *end = NULL;
 groupnode *grohead = NULL;
@@ -41,23 +41,23 @@ infonode *find_info(char *s);
 void joingroup(pack *recv_pack) //加入群
 {
     char s[200];
-    sprintf(s, "insert into message(recv_name=\'%s\',send_name=\'%s\',id=3,works=\'%s\'", 
-    recv_pack->id, recv_pack->send_name,recv_pack->id);
+    sprintf(s, "insert into message(recv_name,send_name,id,works)values(\'%d\',\'%s\',3,\'%d\')",
+            recv_pack->id, recv_pack->send_name, recv_pack->id);
     mysql_in_del(s);
-    strcpy(recv_pack, "加入申请已发送");
+    strcpy(recv_pack->work, "加入申请已发送");
     send_t(recv_pack, recv_pack->send_id);
 }
- void cleargroup(pack *recv_pack) //解散群
+void cleargroup(pack *recv_pack) //解散群
 {
     char s[200];
     groupnode *p = grohead->next;
     int t;
-    sprintf(s, "select * from groups where status>0 and id=%d and name=\'%s\'",
+    sprintf(s, "select * from groups where status==2 and id=%d and name=\'%s\'",
             recv_pack->id, recv_pack->send_name);
     t = mysql_select(s, recv_pack, 3);
     if (t == 0)
     {
-        strcpy(recv_pack->work, "你还不是该群的管理员，没有权利解散群聊");
+        strcpy(recv_pack->work, "你还不是该群的群主，没有权利解散群聊");
         send_t(recv_pack, recv_pack->send_id);
         return;
     }
@@ -90,7 +90,7 @@ void setgroup(pack *recv_pack) //设置群管理员
     t = mysql_select(s, recv_pack, 3);
     if (t == 0)
     {
-        stcpy(recv_pack->work, "对不起，没有在该群中找到此人");
+        strcpy(recv_pack->work, "对不起，没有在该群中找到此人");
         send_t(recv_pack, recv_pack->send_id);
         return;
     }
@@ -99,7 +99,7 @@ void setgroup(pack *recv_pack) //设置群管理员
         sprintf(s, "update groups set status=1 where id=%d and name=\'%s\'",
                 recv_pack->id, recv_pack->recv_name);
         mysql_in_del(s);
-        stcpy(recv_pack->work, "已经设置管理员成功");
+        strcpy(recv_pack->work, "已经设置管理员成功");
         send_t(recv_pack, recv_pack->send_id);
         sprintf(s, "insert into message(recv_name,send_name,id,works)"
                    "values(\'%s\',\'%s\',8,\'成功把你设置为群号%d的管理员\')",
@@ -169,7 +169,7 @@ void del_group(pack *recv_pack) //退出群
 {
     char s[200];
     sprintf(s, "select * from groups where id=%d", recv_pack->id);
-    if (mysql_select(s, recv_pack, 3) < 0)
+    if (mysql_select(s, recv_pack, 3) == 0)
     {
         strcpy(recv_pack->work, "你的群聊中不存在该群");
         send_t(recv_pack, recv_pack->send_id);
@@ -480,6 +480,9 @@ void *body(void *arg)
         break;
     case 's':
         cleargroup(recv_pack);
+        break;
+    case 't':
+        joingroup(recv_pack);
         break;
     default:
         break;
@@ -813,7 +816,9 @@ int main()
     int lid, cid, ep_fd;
     signal(SIGPIPE, SIG_IGN);
     head = (node *)malloc(sizeof(node));
+    head->next=NULL;
     ifhead = (infonode *)malloc(sizeof(infonode));
+    ifhead->next=NULL;
     end = head;
     pack *packs = (pack *)malloc(sizeof(pack));
     pthead = (pthnode *)malloc(sizeof(pthnode));
@@ -824,6 +829,7 @@ int main()
         b->next = a;
         b = b->next;
     }
+    b->next=NULL;
     grohead = (groupnode *)malloc(sizeof(groupnode));
     groupnode *x, *y = grohead;
     for (int i = 0; i < size; i++)
@@ -832,6 +838,7 @@ int main()
         y->next = x;
         y = y->next;
     }
+    y->next=NULL;
     struct sockaddr_in client_addr, server_addr;
     lid = socket(AF_INET, SOCK_STREAM, 0);
     if (lid < 0)

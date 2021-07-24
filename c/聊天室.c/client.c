@@ -2,6 +2,7 @@
 pack *recv_pack;
 pack *send_pack;
 pthnode *pthead;
+groupnode *grohead;
 int sock_fd;
 int tiao = 0;
 int mes = 0;
@@ -37,10 +38,33 @@ void cli_delgroup();
 void friend_histroy();
 void cli_allgroup();
 void cli_groupmember();
+void cli_setgroup();
+void cli_joingroup();
+void cli_cleargroup();
+void cli_cleargroup()
+{
+    printf("请选择要解散的群聊群号：");
+    scanf("%d", recv_pack->id);
+    send_t(send_pack, sock_fd);
+}
+void cli_joingroup() //添加群聊
+{
+    printf("请输入需要添加群聊的群号:\n");
+    scanf("%d", &send_pack->id);
+    send_t(send_pack, sock_fd);
+}
+void cli_setgroup() //设置管理员
+{
+    printf("请选择群号:");
+    scanf("%d", &send_pack->id);
+    printf("\n请选择设置的成员");
+    scanf("%s", send_pack->recv_name);
+    send_t(send_pack, sock_fd);
+}
 void cli_creagroup() //创群
 {
     printf("创建群名:");
-    scanf("%s",send_pack->recv_name);
+    scanf("%s", send_pack->recv_name);
     send_t(send_pack, sock_fd);
 }
 void cli_delgroup() //退群
@@ -71,7 +95,7 @@ void friend_histroy()
 {
     printf("需要查看的好友:");
     scanf("%s", send_pack->recv_name);
-    send_t(send_pack,sock_fd);
+    send_t(send_pack, sock_fd);
 }
 void *nextst()
 {
@@ -93,7 +117,9 @@ void *nextst()
         printf("%10s", "i.退群\n");
         printf("%10s", "o.显示所有群\n");
         printf("%10s", "p.显示群成员\n");
-        printf("%10s", "q.群权限管理\n");
+        printf("%10s", "r.群权限设置\n");
+        printf("%10s", "s.解散群聊天\n");
+        printf("%10s", "t.加入群聊天\n");
         printf("%10s", "k.群聊\n");
         printf("%10s", "l.传输文件\n");
         printf("%10s", "j.消息中心\n");
@@ -140,11 +166,19 @@ void *nextst()
         case 'n':
             friend_histroy();
             break;
+        case 's':
+            cli_cleargroup();
         case 'q':
         {
             close(sock_fd);
             exit(0);
         }
+        case 'r':
+            cli_setgroup();
+            break;
+        case 't':
+            cli_joingroup();
+            break;
         case '\n':
         {
             tiao == 0;
@@ -166,15 +200,16 @@ void *nextst()
 }
 void cli_allgroup()
 {
-    printf("-----所有群聊-----\n");
-    send_t(recv_pack,recv_pack->send_id);
+    printf("-------所有群聊-------\n");
+    send_t(send_pack, sock_fd);
 }
 void cli_groupmember()
-{   
+{
+    printf("-------所有成员-------\n");
     printf("需要查看群成员的群号:\n");
-    scanf("%d",&recv_pack->id);
+    scanf("%d", &send_pack->id);
     printf("-----所有群群成员-----\n");
-    send_t(recv_pack,recv_pack->send_id);
+    send_t(send_pack, sock_fd);
 }
 void recvs() //收数据包
 {
@@ -242,6 +277,43 @@ void recvs() //收数据包
             }
             break;
         }
+        case 'o':
+        {
+            printf("一共有%d个群聊\n", recv_pack->id);
+            int sum = recv_pack->id;
+            for (int i = 0; i < sum; i++)
+            {
+                recv(sock_fd, (void *)grohead, sizeof(groupnode), 0);
+                printf("群号:%d\n", grohead->id);
+            }
+            break;
+        }
+        case 'p':
+        {
+            printf("该群聊共有%d个成员\n", recv_pack->id);
+            int sum = recv_pack->id;
+            for (int i = 0; i < sum; i++)
+            {
+                recv(sock_fd, (void *)grohead, sizeof(groupnode), 0);
+                printf("群号:%d 成员:%s\n", grohead->id, grohead->name);
+            }
+            break;
+        }
+        case 'r':
+        {
+            printf("%s\n", recv_pack->work);
+            break;
+        }
+        case 's':
+        {
+            printf("%s\n", recv_pack->work);
+            break;
+        }
+        case 't':
+        {
+            printf("%s\n", recv_pack->work);
+            break;
+        }
         case 'j':
         {
             mes = 0;
@@ -271,7 +343,11 @@ void recvs() //收数据包
                 }
                 case 3:
                 {
-                    printf("%s发出申请加入群聊%s(yes.同意 no.拒绝)\n", recv_pack->send_name, recv_pack->recv_name);
+                    printf("%s发出申请加入群聊%s(yes.同意 no.拒绝)\n", pthead->name, pthead->work);
+                    scanf("%s", retpack->work);
+                    strcpy(retpack->send_name, recv_pack->send_name);
+                    strcpy(retpack->recv_name, pthead->name);
+                    send_t(retpack, sock_fd);
                     break;
                 }
                 case 4:
@@ -281,7 +357,7 @@ void recvs() //收数据包
                 }
                 case 5:
                 {
-                    printf("你已经成功加入群聊%s\n", recv_pack->recv_name);
+                    printf("你已经成功加入群聊%s\n", pthead->name);
                     break;
                 }
                 case 6:
@@ -293,6 +369,17 @@ void recvs() //收数据包
                 case 7:
                 {
                     printf("你的离线时收到%s:%s\n", pthead->name, pthead->work);
+                    break;
+                }
+                case 8:
+                {
+                    printf("%s%s\n", pthead->name, pthead->work);
+                    break;
+                }
+                case 9:
+                {
+                    printf("%s%s\n", pthead->name, pthead->work);
+                    break;
                 }
                 default:
                     break;
@@ -488,6 +575,7 @@ int main()
     recv_pack = (pack *)malloc(sizeof(pack));
     send_pack = (pack *)malloc(sizeof(pack));
     pthead = (pthnode *)malloc(sizeof(pthnode));
+    grohead = (groupnode *)malloc(sizeof(groupnode));
     pthnode *pt, *qt;
     qt = pthead;
     for (int i = 0; i <= size; i++)
