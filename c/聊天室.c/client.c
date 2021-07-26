@@ -215,7 +215,7 @@ void recvs() //收数据包
 {
     sleep(1);
     int t;
-    recv_t(recv_pack, sock_fd);
+    ssize_t nfs;
     while (1)
     {
         pthread_mutex_lock(&get);
@@ -243,8 +243,9 @@ void recvs() //收数据包
             t = atoi(recv_pack->work);
             for (int i = 0; i < t; i++)
             {
-                if (recv(sock_fd, pthead, sizeof(pthnode), 0) < 0)
+                if ((nfs=(recv(sock_fd, pthead, sizeof(pthnode), 0))) < 0)
                     my_err("recv", __LINE__);
+                    printf("%zd\n",nfs);
                 printf("%s  %d\n", pthead->work, pthead->status);
             }
             // printf("%s  %d", recv_pack->work, recv_pack->status);
@@ -324,7 +325,8 @@ void recvs() //收数据包
             retpack->send_id = recv_pack->send_id;
             for (int i = 0; i < t; i++)
             {
-                recv(sock_fd, (void *)pthead, sizeof(pthnode), 0);
+                nfs=recv(sock_fd, (void *)pthead, sizeof(pthnode), 0);
+                printf("%zd\n",nfs);
                 switch (pthead->status)
                 {
                 case 1:
@@ -357,7 +359,7 @@ void recvs() //收数据包
                 }
                 case 5:
                 {
-                    printf("你已经成功加入群聊%s\n", pthead->name);
+                    printf("你已经成功加入群聊%s\n", pthead->work);
                     break;
                 }
                 case 6:
@@ -421,9 +423,10 @@ void send_t(pack *s, int fd)
         my_err("send", __LINE__);
 }
 void recv_t(pack *s, int fd)
-{
-    if (recv(fd, s, sizeof(pack), 0) < 0)
+{   ssize_t nfs;
+    if ((nfs = recv(fd, s, sizeof(pack), 0)) < 0)
         my_err("recv", __LINE__);
+    printf("%zd\n",nfs);
     if (s->status == 1)
     {
         mes = 1;

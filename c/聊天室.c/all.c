@@ -4,7 +4,7 @@ pthnode *pthead;
 int mes = 0;      //message的群消息和个人交互出现问题，容易错误
 node *head = NULL;
 node *end = NULL;
-groupnode *grohead = NULL;
+groupnode *grohead = NULL; 
 infonode *ifhead = NULL;
 pthread_mutex_t fchat = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t group = PTHREAD_MUTEX_INITIALIZER;
@@ -157,11 +157,13 @@ void allgroup(pack *recv_pack) //查看所有群
 void create_group(pack *recv_pack) //创建群
 {
     char s[200];
-    sprintf(s, "insert into groups(group_name,name,status)values(\'%s\',\'%s\',2)",
+    sprintf(s, "insert into groups(id,group_name,name,status)values(1,\'%s\',\'%s\',2)",
             recv_pack->recv_name, recv_pack->send_name);
     mysql_in_del(s);
-    sprintf(s, "select id from groups where group_name=\'%s\'", recv_pack->recv_name);
+    sprintf(s, "select nums from groups where group_name=\'%s\'", recv_pack->recv_name);
     mysql_select(s, recv_pack, 0);
+    sprintf(s,"update groups set id=%d,idchar=%d where nums=%d",recv_pack->send_nums,recv_pack->send_nums,recv_pack->send_nums);
+    mysql_in_del(s);
     strcpy(recv_pack->work, "创建群成功");
     send_t(recv_pack, recv_pack->send_id);
 }
@@ -197,7 +199,10 @@ infonode *find_info(char *s)
 void panduan_message(pack *recv_pack) //判断该对应用户，是否有消息
 {
     char s[200];
-    sprintf(s, "select * from message where recv_name=\'%s\' and id>0", recv_pack->send_name);
+    sprintf(s, "select send_name,id,works from message where recv_name=\'%s\'and id>0"
+               " union  select a.send_name,a.works,a.id from message a,groups b where"
+                " a.works=b.idchar and a.id=3 and b.status>0 and b.name=\'%s\'",
+            recv_pack->send_name,recv_pack->send_name);
     recv_pack->status = mysql_select(s, recv_pack, 3);
     return;
 }
@@ -410,6 +415,11 @@ void mysql_select_words(char *buf, pack *recv_pack, int t) //查询多条信息,
             }
         }
     }
+    else
+    {
+        if(t==1)
+        sprintf(recv_pack->work, "%d", 0);
+    }
     mysql_free_result(result);
 }
 void my_err(char *err_string, int line)
@@ -421,8 +431,10 @@ void my_err(char *err_string, int line)
 void send_t(pack *s, int fd)
 {
     panduan_message(s);
-    if (send(fd, s, sizeof(pack), 0) < 0)
+    ssize_t nfs;
+    if ((nfs=send(fd, s, sizeof(pack), 0) )< 0)
         my_err("send", __LINE__);
+        printf("%zd\n",nfs);
 }
 void recv_t(pack *s, int fd)
 {
@@ -629,7 +641,6 @@ void sign(pack *recv_pack) //登陆函数
     end = p;
     end->next = NULL;
     pthread_mutex_unlock(&lock);
-    send_t(recv_pack, recv_pack->send_id);
     infonode *pe, *qe;
     pe = ifhead;
     while (pe->next != NULL)
@@ -726,9 +737,10 @@ void select_friend(pack *recv_pack)
 {
     char s[200];
     int all;
+    ssize_t nfs;
     pthnode *t = pthead->next;
     sprintf(s, "select recv_name,send_name from friend where recv_name=\'%s\' "
-               "union select recv_name,send_name from friend where send_name=\'%s\' ",
+               "union select recv_name,send_name from friend where send_name=\'%s\'",
             recv_pack->send_name, recv_pack->send_name);
     pthread_mutex_lock(&lockwords);
     //memset(pthead, 0, sizeof(pthnode) * (size + 1));
@@ -738,31 +750,32 @@ void select_friend(pack *recv_pack)
     send_t(recv_pack, recv_pack->send_id);
     for (int i = 0; i < all; i++)
     {
-        if (send(recv_pack->send_id, t, sizeof(pthnode), 0) < 0)
+        if ((nfs=send(recv_pack->send_id, t, sizeof(pthnode), 0)) < 0)
         {
             my_err("send", __LINE__);
         }
+        printf("%zd\n",nfs);
         t = t->next;
     }
     pthread_mutex_unlock(&lockwords);
 }
 void message(pack *recv_pack) //消息中心
 {
-    char s[300];
+    char s[400];
     int number;
     int all;
     pthnode *t = pthead->next;
-    sprintf(s, "select  send_name,id,works from message where recv_name=\'%s\'and id>0"
-               "union select send_name,id,works from message where recv_name"
-               "=(select cast(id as char) id from groups where name=\'%s\' and status>0) and id=3",
-            recv_pack->send_name, recv_pack->send_name);
+    sprintf(s, "select send_name,id,works from message where recv_name=\'%s\'and id>0"
+               " union  select a.send_name,a.id,a.works from message a,groups b where"
+                " a.works=b.idchar and a.id=3 and b.status>0 and b.name=\'%s\'",
+            recv_pack->send_name,recv_pack->send_name);
     pthread_mutex_lock(&lockwords);
     mysql_select_words(s, recv_pack, 1);
     all = atoi(recv_pack->work);
-    sprintf(s, "select send_name,id from message where recv_name=\'%s\'and"
-               "id=1 union select send_name,id from message where recv_name"
-               "=(select cast(id as char) id from groups where name=\'%s\' and status>0) and id=3",
-            recv_pack->send_name, recv_pack->send_name);
+    sprintf(s, "select send_name,id,works from message where recv_name=\'%s\'and id>0"
+               " union  select a.send_name,a.id,a.works from message a,groups b where"
+                " a.works=b.idchar and a.id=3 and b.status>0 and b.name=\'%s\'",
+            recv_pack->send_name,recv_pack->send_name);
     number = mysql_select(s, recv_pack, 4);
     recv_pack->id = number; //好友请求数量
     send_t(recv_pack, recv_pack->send_id);
@@ -790,24 +803,26 @@ void message(pack *recv_pack) //消息中心
             recv_t(recv_pack, recv_pack->send_id);
             if (strcmp(recv_pack->work, "yes") == 0)
             {
-                sprintf(s, "insert into groups(id,name,status)" //加入群表
-                           "values(%d,\'%s\',0)",
-                        recv_pack->id, recv_pack->recv_name);
+                sprintf(s, "insert into groups(id,name,status,idchar)" //加入群表
+                           "values(%d,\'%s\',0,\'%s\')",
+                        atoi(t->work), t->name,t->work);
                 mysql_in_del(s);
-                sprintf(s, "update message set id=5,send_name=\'%s\',recv_name=\'%s\'"
-                           " where recv_name=\'%s\' and send_name=\'%s\'",
-                        recv_pack->id, recv_pack->recv_name,
-                        recv_pack->id, recv_pack->recv_name);
+                sprintf(s, "update message set id=5,recv_name=\'%s\'"
+                " where send_name=\'%s\' and works=\'%s\'",
+                       t->name,t->name,t->work);
                 mysql_in_del(s);
             }
         }
+        else if(t->status==5)
+        {
+            sprintf(s, "update message set id=0 where recv_name=\'%s\'",
+                       recv_pack->send_name);
+                mysql_in_del(s);
+        }
         t = t->next;
     }
-    sprintf(s, "update message set id=0 where recv_name=\'%s\' ", recv_pack->send_name);
+    sprintf(s, "update message set id=0 where recv_name=\'%s\' and (id!=4 or id!=5)", recv_pack->send_name);
     mysql_in_del(s); //信息传完后，将所有状态设置为0,已发送
-    sprintf(s, "update message set id=0 where recv_name=(select cast(id as char)"
-               "id from groups where name=\'%s\' and status>0",
-            recv_pack->send_name);
     pthread_mutex_unlock(&lockwords);
 }
 int main()
@@ -900,7 +915,7 @@ int main()
             else if (ep_ids[i].events & EPOLLIN) //读数据
             {
                 if ((tsize = recv(ep_ids[i].data.fd, packs, sizeof(pack), 0)) < 0)
-                {
+                {   
                     my_err("recv", __LINE__);
                 }
                 else if (tsize == 0) //对端客户端关闭
