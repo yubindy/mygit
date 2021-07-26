@@ -1,14 +1,15 @@
 #include "chatroom.h"
 MYSQL mysql;
 pthnode *pthead;
-int mes = 0;      //message的群消息和个人交互出现问题，容易错误
+int mes = 0; 
 node *head = NULL;
 node *end = NULL;
-groupnode *grohead = NULL; 
+groupchat *chathead=NULL;
+groupnode *grohead = NULL;
 infonode *ifhead = NULL;
 pthread_mutex_t fchat = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t group = PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t groupchat = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t grchat = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t mysqs = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t lockwords = PTHREAD_MUTEX_INITIALIZER;
@@ -38,6 +39,13 @@ void cleargroup(pack *recv_pack);
 void setgroup(pack *recv_pack);
 void joingroup(pack *recv_pack);
 infonode *find_info(char *s);
+void group_chat(pack *recv_pack);
+void group_chat(pack *recv_pack) //群聊
+{
+    char s[200];
+    recv_t(recv_pack, recv_pack->send_id);
+    sprintf(s, "select * from message ");
+}
 void joingroup(pack *recv_pack) //加入群
 {
     char s[200];
@@ -162,7 +170,7 @@ void create_group(pack *recv_pack) //创建群
     mysql_in_del(s);
     sprintf(s, "select nums from groups where group_name=\'%s\'", recv_pack->recv_name);
     mysql_select(s, recv_pack, 0);
-    sprintf(s,"update groups set id=%d,idchar=%d where nums=%d",recv_pack->send_nums,recv_pack->send_nums,recv_pack->send_nums);
+    sprintf(s, "update groups set id=%d,idchar=%d where nums=%d", recv_pack->send_nums, recv_pack->send_nums, recv_pack->send_nums);
     mysql_in_del(s);
     strcpy(recv_pack->work, "创建群成功");
     send_t(recv_pack, recv_pack->send_id);
@@ -201,8 +209,8 @@ void panduan_message(pack *recv_pack) //判断该对应用户，是否有消息
     char s[200];
     sprintf(s, "select send_name,id,works from message where recv_name=\'%s\'and id>0"
                " union  select a.send_name,a.works,a.id from message a,groups b where"
-                " a.works=b.idchar and a.id=3 and b.status>0 and b.name=\'%s\'",
-            recv_pack->send_name,recv_pack->send_name);
+               " a.works=b.idchar and a.id=3 and b.status>0 and b.name=\'%s\'",
+            recv_pack->send_name, recv_pack->send_name);
     recv_pack->status = mysql_select(s, recv_pack, 3);
     return;
 }
@@ -314,7 +322,6 @@ void mysql_select_words(char *buf, pack *recv_pack, int t) //查询多条信息,
     MYSQL_ROW row;
     MYSQL_FIELD *field;
     pthnode *s = pthead->next;
-    groupnode *p = grohead->next;
     pthread_mutex_lock(&mysqs);
     flag = mysql_query(&mysql, buf);
     if (flag)
@@ -351,6 +358,8 @@ void mysql_select_words(char *buf, pack *recv_pack, int t) //查询多条信息,
         }
         else if (t == 1)
         {
+            pthread_mutex_lock(&group);
+            groupnode *p = grohead->next;
             while ((row = mysql_fetch_row(result)) != 0)
             {
                 for (unsigned int i = 0; i < mysql_num_fields(result); i++)
@@ -366,6 +375,7 @@ void mysql_select_words(char *buf, pack *recv_pack, int t) //查询多条信息,
                     break;
                 }
             }
+            pthread_mutex_unlock(&group);
             sprintf(recv_pack->work, "%d", number);
         }
         else if (t == 3)
@@ -386,6 +396,8 @@ void mysql_select_words(char *buf, pack *recv_pack, int t) //查询多条信息,
         }
         else if (t == 4)
         {
+            pthread_mutex_lock(&group);
+            groupnode *p = grohead->next;
             while ((row = mysql_fetch_row(result)) != 0)
             {
                 for (unsigned int i = 0; i < mysql_num_fields(result); i++)
@@ -398,9 +410,12 @@ void mysql_select_words(char *buf, pack *recv_pack, int t) //查询多条信息,
                     break;
                 }
             }
+            pthread_mutex_unlock(&group);
         }
         else if (t == 5)
         {
+            pthread_mutex_lock(&group);
+            groupnode *p = grohead->next;
             while ((row = mysql_fetch_row(result)) != 0)
             {
                 for (unsigned int i = 0; i < mysql_num_fields(result); i++)
@@ -413,12 +428,13 @@ void mysql_select_words(char *buf, pack *recv_pack, int t) //查询多条信息,
                     break;
                 }
             }
+            pthread_mutex_unlock(&group);
         }
     }
     else
     {
-        if(t==1)
-        sprintf(recv_pack->work, "%d", 0);
+        if (t == 1)
+            sprintf(recv_pack->work, "%d", 0);
     }
     mysql_free_result(result);
 }
@@ -432,9 +448,9 @@ void send_t(pack *s, int fd)
 {
     panduan_message(s);
     ssize_t nfs;
-    if ((nfs=send(fd, s, sizeof(pack), 0) )< 0)
+    if ((nfs = send(fd, s, sizeof(pack), 0)) < 0)
         my_err("send", __LINE__);
-        printf("%zd\n",nfs);
+    printf("%zd\n", nfs);
 }
 void recv_t(pack *s, int fd)
 {
@@ -750,11 +766,11 @@ void select_friend(pack *recv_pack)
     send_t(recv_pack, recv_pack->send_id);
     for (int i = 0; i < all; i++)
     {
-        if ((nfs=send(recv_pack->send_id, t, sizeof(pthnode), 0)) < 0)
+        if ((nfs = send(recv_pack->send_id, t, sizeof(pthnode), 0)) < 0)
         {
             my_err("send", __LINE__);
         }
-        printf("%zd\n",nfs);
+        printf("%zd\n", nfs);
         t = t->next;
     }
     pthread_mutex_unlock(&lockwords);
@@ -767,15 +783,15 @@ void message(pack *recv_pack) //消息中心
     pthnode *t = pthead->next;
     sprintf(s, "select send_name,id,works from message where recv_name=\'%s\'and id>0"
                " union  select a.send_name,a.id,a.works from message a,groups b where"
-                " a.works=b.idchar and a.id=3 and b.status>0 and b.name=\'%s\'",
-            recv_pack->send_name,recv_pack->send_name);
+               " a.works=b.idchar and a.id=3 and b.status>0 and b.name=\'%s\'",
+            recv_pack->send_name, recv_pack->send_name);
     pthread_mutex_lock(&lockwords);
     mysql_select_words(s, recv_pack, 1);
     all = atoi(recv_pack->work);
     sprintf(s, "select send_name,id,works from message where recv_name=\'%s\'and id>0"
                " union  select a.send_name,a.id,a.works from message a,groups b where"
-                " a.works=b.idchar and a.id=3 and b.status>0 and b.name=\'%s\'",
-            recv_pack->send_name,recv_pack->send_name);
+               " a.works=b.idchar and a.id=3 and b.status>0 and b.name=\'%s\'",
+            recv_pack->send_name, recv_pack->send_name);
     number = mysql_select(s, recv_pack, 4);
     recv_pack->id = number; //好友请求数量
     send_t(recv_pack, recv_pack->send_id);
@@ -805,19 +821,19 @@ void message(pack *recv_pack) //消息中心
             {
                 sprintf(s, "insert into groups(id,name,status,idchar)" //加入群表
                            "values(%d,\'%s\',0,\'%s\')",
-                        atoi(t->work), t->name,t->work);
+                        atoi(t->work), t->name, t->work);
                 mysql_in_del(s);
                 sprintf(s, "update message set id=5,recv_name=\'%s\'"
-                " where send_name=\'%s\' and works=\'%s\'",
-                       t->name,t->name,t->work);
+                           " where send_name=\'%s\' and works=\'%s\'",
+                        t->name, t->name, t->work);
                 mysql_in_del(s);
             }
         }
-        else if(t->status==5)
+        else if (t->status == 5)
         {
             sprintf(s, "update message set id=0 where recv_name=\'%s\'",
-                       recv_pack->send_name);
-                mysql_in_del(s);
+                    recv_pack->send_name);
+            mysql_in_del(s);
         }
         t = t->next;
     }
@@ -830,10 +846,11 @@ int main()
 {
     int lid, cid, ep_fd;
     signal(SIGPIPE, SIG_IGN);
+    chathead=(groupnode*)malloc(sizeof(groupnode));
     head = (node *)malloc(sizeof(node));
-    head->next=NULL;
+    head->next = NULL;
     ifhead = (infonode *)malloc(sizeof(infonode));
-    ifhead->next=NULL;
+    ifhead->next = NULL;
     end = head;
     pack *packs = (pack *)malloc(sizeof(pack));
     pthead = (pthnode *)malloc(sizeof(pthnode));
@@ -844,7 +861,7 @@ int main()
         b->next = a;
         b = b->next;
     }
-    b->next=NULL;
+    b->next = NULL;
     grohead = (groupnode *)malloc(sizeof(groupnode));
     groupnode *x, *y = grohead;
     for (int i = 0; i < size; i++)
@@ -853,7 +870,15 @@ int main()
         y->next = x;
         y = y->next;
     }
-    y->next=NULL;
+    y->next = NULL;
+    groupchat *g,*h=chathead;
+    for(int i=0;i<size;i++)
+    {
+           g=(groupchat*)malloc(sizeof(groupchat));
+           h->next=g;
+           h=h->next;
+    } 
+    h->next=NULL;
     struct sockaddr_in client_addr, server_addr;
     lid = socket(AF_INET, SOCK_STREAM, 0);
     if (lid < 0)
@@ -915,7 +940,7 @@ int main()
             else if (ep_ids[i].events & EPOLLIN) //读数据
             {
                 if ((tsize = recv(ep_ids[i].data.fd, packs, sizeof(pack), 0)) < 0)
-                {   
+                {
                     my_err("recv", __LINE__);
                 }
                 else if (tsize == 0) //对端客户端关闭

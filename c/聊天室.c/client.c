@@ -41,6 +41,13 @@ void cli_groupmember();
 void cli_setgroup();
 void cli_joingroup();
 void cli_cleargroup();
+void cli_groupchat();
+void cli_groupchat()   //群聊
+{
+    printf("请输入群聊的群号：");
+    scanf("%d",&send_pack->send_nums);
+    send_t(send_pack,sock_fd);
+}
 void cli_cleargroup()
 {
     printf("请选择要解散的群聊群号：");
