@@ -35,10 +35,11 @@ typedef struct pack //定义包类型
     char nums[20];
 
 } pack;
-typedef struct node////定义链表存储上线用户,频繁修改数据
+typedef struct node////定义链表存储上线用户,频繁修改数据也用于上线用户群聊交流
 { 
     char t[20];  //名字
     int id;
+    int groupid;
     struct node *next;
 } node;
 typedef struct pthnode  //保存信息的链表
@@ -60,13 +61,7 @@ typedef struct groupnode
     int id;       //群id
     struct groupnode *next;
 }groupnode;
-typedef struct groupchat
-{
-    char name[10];
-    char work[50];
-    int id;
-    struct groupchat* next;
-}groupchat;
+
 extern MYSQL mysql;
 const char right[20] = "yes you are right";
 void my_err(char *err_string, int line);

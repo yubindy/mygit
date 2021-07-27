@@ -15,6 +15,7 @@
 #include <sys/poll.h>
 #include <sys/epoll.h>
 #include <pthread.h>
+#include<stdlib.h>
 // #include "cJSON.h"
 #include <mysql/mysql.h>
 #define passwords "zhaozeyu1234"
