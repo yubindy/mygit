@@ -2,6 +2,7 @@
 MYSQL mysql;
 pthnode *pthead;
 int mes = 0;
+int grchat = 1;
 node *head = NULL;
 node *end = NULL;
 groupnode *grohead = NULL;
@@ -45,18 +46,19 @@ void group_histroy(pack *recv_pack)
     char s[200];
     int t;
     pthnode *pt = pthead->next;
-    sprintf(s, "select * from where name=\'%s\' and idchar=%d", recv_pack->send_name, recv_pack->send_nums);
+    sprintf(s, "select * from groups where name=\'%s\' and idchar=\'%d\'", recv_pack->send_name, recv_pack->id);
     if (mysql_select(s, recv_pack, 3) == 0)
     {
         strcpy(recv_pack->work, "你没有加入到该群聊");
         send_t(recv_pack, recv_pack->send_id);
         return;
     }
-    sprintf(s, "select * from group_histroy where id=%d", recv_pack->send_nums);
+    sprintf(s, "select * from group_histroy where id=%d", recv_pack->id);
     t = mysql_select(s, recv_pack, 4);
-    recv_pack->id = t;
+    recv_pack->status = t;
     sprintf(recv_pack->work, "该群一共有%d条消息记录", t);
-    sprintf(s, "select send_name,words from group_histroy where id=%d", recv_pack->send_nums);
+    send_t(recv_pack,recv_pack->send_id);
+    sprintf(s, "select send_name,words from group_histroy where id=%d",recv_pack->id);
     pthread_mutex_lock(&lockwords);
     mysql_select_words(s, recv_pack, 3);
     for (int i = 0; i < t; i++)
@@ -68,15 +70,21 @@ void group_histroy(pack *recv_pack)
 }
 void group_chat(pack *recv_pack) //群聊
 {
+    grchat = 1;
     char s[200];
     pthnode *information = (pthnode *)malloc(sizeof(pthnode));
     sprintf(s, "select * from groups where id=%d and name=\'%s\'",
             recv_pack->send_nums, recv_pack->send_name);
-    if (mysql_select(s, recv_pack, 3) == 0)
+    if (recv_pack->id == 1)
     {
-        strcpy(recv_pack->work, "对不起，你没有加入群聊\n");
+        if (mysql_select(s, recv_pack, 3) == 0)
+        {
+            strcpy(recv_pack->work, "对不起，你没有加入群聊\n");
+            send_t(recv_pack, recv_pack->send_id);
+            grchat = 0;
+            return;
+        }
         send_t(recv_pack, recv_pack->send_id);
-        return;
     }
     node *t = head, *p;
     pthread_mutex_lock(&lock);
@@ -92,8 +100,11 @@ void group_chat(pack *recv_pack) //群聊
     }
     t = head->next;
     pthread_mutex_unlock(&lock);
-    if (strcmp(information->work, "~exit") == 0)
+    if (strcmp(recv_pack->work, "~exit") == 0)
+    {
+        grchat = 0;
         return;
+    }
     sprintf(s, "insert into group_histroy (send_name,id,words) values(\'%s\',%d,\'%s\')",
             recv_pack->send_name, recv_pack->send_nums, recv_pack->work);
     mysql_in_del(s);
@@ -112,6 +123,7 @@ void group_chat(pack *recv_pack) //群聊
         t = t->next;
     }
     pthread_mutex_unlock(&chatgroup);
+    return;
 }
 void joingroup(pack *recv_pack) //加入群
 {
@@ -578,9 +590,14 @@ void *body(void *arg)
     case 't':
         joingroup(recv_pack);
         break;
+    case 'w':
+       group_histroy(recv_pack);
+       break;
     default:
         break;
     }
+    if (recv_pack->cho == 'k' && grchat == 1)
+        return NULL;
     panduan_message(recv_pack);
     return NULL;
 }

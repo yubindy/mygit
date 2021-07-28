@@ -1,7 +1,7 @@
 #include "chatroom.h"
 pack *recv_pack;
-pack *send_pack;   //群聊有问题看看
-pthnode *pthead;
+pack *send_pack; //群聊有问题看看
+pthnode *pthead;               
 groupnode *grohead;
 int sock_fd;
 int tiao = 0;
@@ -52,11 +52,9 @@ void *grouprecv() //群聊天收包
     while (1)
     {
         recv_t(recv_pack, sock_fd);
-        pthread_mutex_lock(&groups);
         printf("%s:%s\n", recv_pack->send_name, recv_pack->work);
         if (flag == 0)
             pthread_exit(0);
-        pthread_mutex_unlock(&groups);
     }
 }
 void cli_groupchat() //群聊
@@ -64,9 +62,14 @@ void cli_groupchat() //群聊
     printf("请输入群聊的群号：");
     scanf("%d", &send_pack->send_nums);
     printf("聊天中..........(输入~exit,退出聊天)\n");
-    printf("%s:",recv_pack->send_name);
-    scanf("%s",recv_pack->work);
-    send_t(recv_pack,sock_fd);
+    scanf("%s", send_pack->work);
+    send_pack->id=1;
+    send_t(send_pack, sock_fd);
+    if (strcmp(send_pack->work, "~exit") == 0)
+    {
+        tiao = 0;
+        return;
+    }
 }
 void cli_cleargroup()
 {
@@ -357,40 +360,35 @@ void recvs() //收数据包
                 printf("%s", recv_pack->work);
                 break;
             }
+            pthread_create(&groupid, NULL, grouprecv, NULL);
+            pthread_detach(groupid);
             while (1)
             {
-                pthread_mutex_lock(&groups);
-                printf("%s:", send_pack->send_name);
                 scanf("%s", send_pack->work);
                 printf("\n");
-                pthread_mutex_unlock(&groups);
+                 send_pack->id=0;
+                send_t(send_pack, sock_fd);
                 if (strcmp(send_pack->work, "~exit") == 0)
                     flag = 0;
                 if (flag == 0)
                     break;
-                send_t(send_pack, sock_fd);
-                if (groupflag == 1)
-                {
-                    pthread_create(&groupid, NULL, grouprecv, NULL);
-                    pthread_detach(groupid);
-                    groupflag = 0;
-                }
             }
             break;
-        } 
-        case 'w':   //查询群聊历史
+        }
+        case 'w': //查询群聊历史
         {
-             pthnode *t=pthead;
-             int num;
-             printf("%s\n",recv_pack->work);
-             if(strcmp(recv_pack->work,"你没有加入到该群聊")==0)
-             break;
-             num=recv_pack->id;
-             for(int i=0;i<num;i++)
-             {
-                 recv(sock_fd,t,sizeof(pthnode),0);
-                 printf("%s:%s\n",t->name,t->work);
-             }
+            pthnode *t = pthead;
+            int num;
+            printf("%s\n", recv_pack->work);
+            if (strcmp(recv_pack->work, "你没有加入到该群聊") == 0)
+                break;
+            num = recv_pack->status;
+            for (int i = 0; i < num; i++)
+            {
+                recv(sock_fd, t, sizeof(pthnode), 0);
+                printf("%s:%s\n", t->name, t->work);
+            }
+            break;
         }
         case 'j':
         {
@@ -491,7 +489,7 @@ void cli_delfriend()
 void cli_grouphistroy()
 {
     printf("请输入需要查询历史记录的群号：");
-    scanf("%s", send_pack->recv_nums);
+    scanf("%d", &send_pack->id);
     send_t(send_pack, sock_fd);
 }
 void my_err(char *err_string, int line)

@@ -20,7 +20,7 @@
 #include <mysql/mysql.h>
 #define passwords "zhaozeyu1234"
 #define port 8573   //绑定端口
-#define size 20     ///可允许同时连接的最大客户端数量
+#define size 50    ///可允许同时连接的最大客户端数量
 typedef struct pack //定义包类型
 {
     char recv_name[10]; //名字
