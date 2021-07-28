@@ -41,6 +41,24 @@ void joingroup(pack *recv_pack);
 infonode *find_info(char *s);
 void group_chat(pack *recv_pack);
 void group_histroy(pack *recv_pack);
+void send_file(pack *recv_pack);
+void send_file(pack *recv_pack)
+{
+    char files[100], rands[20];
+    char sizefile[1024];
+    int fd,nfs;
+    getcwd(files, sizeof(files));
+    memset(rands, 0, sizeof(rands));
+    rand_file(rands);
+    files[strlen(files)] = '/';
+    strncat(files, rands, sizeof(rands));
+    fd = open(files, O_WRONLY | O_CREAT);
+    if((nfs=recv(recv_pack->send_id,sizefile,1023,0))==0)
+    {
+      strcpy(recv_pack->work,"已经成功发送");
+      send_t(recv_pack,recv_pack->send_id);
+    }
+}
 void group_histroy(pack *recv_pack)
 {
     char s[200];
@@ -57,8 +75,8 @@ void group_histroy(pack *recv_pack)
     t = mysql_select(s, recv_pack, 4);
     recv_pack->status = t;
     sprintf(recv_pack->work, "该群一共有%d条消息记录", t);
-    send_t(recv_pack,recv_pack->send_id);
-    sprintf(s, "select send_name,words from group_histroy where id=%d",recv_pack->id);
+    send_t(recv_pack, recv_pack->send_id);
+    sprintf(s, "select send_name,words from group_histroy where id=%d", recv_pack->id);
     pthread_mutex_lock(&lockwords);
     mysql_select_words(s, recv_pack, 3);
     for (int i = 0; i < t; i++)
@@ -591,8 +609,11 @@ void *body(void *arg)
         joingroup(recv_pack);
         break;
     case 'w':
-       group_histroy(recv_pack);
-       break;
+        group_histroy(recv_pack);
+        break;
+    case 'x':
+        send_file();
+        break;
     default:
         break;
     }

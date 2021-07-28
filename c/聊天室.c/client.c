@@ -1,7 +1,7 @@
 #include "chatroom.h"
 pack *recv_pack;
 pack *send_pack; //群聊有问题看看
-pthnode *pthead;               
+pthnode *pthead;
 groupnode *grohead;
 int sock_fd;
 int tiao = 0;
@@ -47,6 +47,27 @@ void cli_joingroup();
 void cli_cleargroup();
 void cli_groupchat();
 void cli_grouphistroy();
+void cli_sendfile();
+void cli_sendfile() //文件传输
+{
+    int fd;
+    off_t t=0;
+    struct stat buf;
+    printf("请输入接收文件的名字：");
+    scanf("%s", send_pack->recv_name);
+    printf("请输入需要传输文件地址：");
+    scanf("%s", send_pack->work);
+    if ((fd = open(send_pack->work, O_RDONLY)) < 0)
+    {
+        perror("open");
+        tiao = 0;
+        return;
+    }
+    fstat(fd,&buf);
+    send_pack->id=buf.st_size;
+    send_t(send_pack, sock_fd);
+    sendfile(fd,sock_fd,&t,buf.st_size);
+}
 void *grouprecv() //群聊天收包
 {
     while (1)
@@ -63,7 +84,7 @@ void cli_groupchat() //群聊
     scanf("%d", &send_pack->send_nums);
     printf("聊天中..........(输入~exit,退出聊天)\n");
     scanf("%s", send_pack->work);
-    send_pack->id=1;
+    send_pack->id = 1;
     send_t(send_pack, sock_fd);
     if (strcmp(send_pack->work, "~exit") == 0)
     {
@@ -156,6 +177,7 @@ void *nextst()
         printf("%10s", "n.查看好友历史\n");
         printf("%10s", "m.查看群消息\n");
         printf("%10s", "w.查看群历史\n");
+        printf("%10s", "x.发送文件\n");
         printf("%10s", "q.退出\n");
         if (mes == 1)
         {
@@ -216,6 +238,9 @@ void *nextst()
         case 'w':
             cli_grouphistroy();
             break;
+        case 'x':
+            cli_sendfile();
+            break;
         case '\n':
         {
             tiao == 0;
@@ -224,7 +249,8 @@ void *nextst()
         default:
         {
             printf("无效输入，请重试\n");
-            tiao--;
+            tiao == 0;
+            break;
         }
         }
         pthread_mutex_unlock(&get);
@@ -366,7 +392,7 @@ void recvs() //收数据包
             {
                 scanf("%s", send_pack->work);
                 printf("\n");
-                 send_pack->id=0;
+                send_pack->id = 0;
                 send_t(send_pack, sock_fd);
                 if (strcmp(send_pack->work, "~exit") == 0)
                     flag = 0;
@@ -458,7 +484,7 @@ void recvs() //收数据包
                     break;
                 }
                 default:
-                    break;
+                    printf("群聊%s的新消息，去群聊历史里看看吧，或进入群聊参与聊天\n");
                 }
             }
         }
