@@ -295,10 +295,10 @@ int main()
         if(buf!=NULL)
         memset(buf, 0, 256);
         nums = 1;
-        read_history(NULL);
+        //read_history(NULL);
         buf=readline("my_shell$$");
         add_history(buf);
-        write_history(NULL);
+        //write_history(NULL);
         get_can(buf);
         explain_can(buf, &nums, can);
         do_can(nums, can);

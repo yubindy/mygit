@@ -100,7 +100,7 @@ void change(node *t)
             fflush(stdout);
             scanf("%d", &p->chinese);
             p->all = p->math + p->chinese;
-            return 0;
+            return;
         }
     }
 }
@@ -110,7 +110,7 @@ void select(node *t)
     
     for(;p=p->next;p!=NULL)
     {
-        printf("姓名：%s 学号: %d 数学语文")
+        printf("姓名：%s 学号: %d 数学语文");
     }
 }
 void jie() //选择界面

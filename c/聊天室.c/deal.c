@@ -151,7 +151,7 @@ void sign(pack *recv_pack) //登陆函数
             exit(1);
         }
         send_t(recv_pack, recv_pack->send_id);
-        printf("用户登陆成功");
+        printf("a new client sign server,name:%s ip:%s\n", recv_pack->send_nums);
     }
     else
     {

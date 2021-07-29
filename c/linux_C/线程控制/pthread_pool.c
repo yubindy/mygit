@@ -12,9 +12,9 @@ typedef struct task_t
 } task_t;
 typedef struct pthread_pool
 {
-    int max_number;  //最大线程数
-    int work_number; //工作线程数
-    pthread_t a[min];
+    int max_number;   //最大线程数
+    int work_number;  //工作线程数
+    pthread_t a[min]; //10
     pthread_mutex_t point;
     pthread_cond_t task_empty; //任务队列为空
     task_t *front;
@@ -29,7 +29,7 @@ void pool_init(int t);
 void pool_destory(int t);
 void *fctl();
 void *pool_fuction()
-{
+{ 
     task_t *work;
     while (1)
     {
@@ -41,7 +41,7 @@ void *pool_fuction()
         if (!pthread_pool->flag)
         {
             pthread_mutex_unlock(&pthread_pool->point);
-            printf("%lu 线程销毁\n",pthread_self());
+            printf("%lu 线程销毁\n", pthread_self());
             pthread_exit(0);
         }
         work = pthread_pool->front;
@@ -75,18 +75,20 @@ void add_task(void *(*fuct)(void *), void *args)
     pthread_cond_signal(&pthread_pool->task_empty);
     pthread_mutex_unlock(&pthread_pool->point);
 }
+#include <assert.h>
+
 void pool_init(int t)
 {
+    // assert(t <= 10);
     pthread_pool = (pool_t *)malloc(sizeof(pool_t));
     if (!pthread_pool)
         perror("malloc pool error");
-    pthread_mutex_t point = PTHREAD_MUTEX_INITIALIZER;
-    pthread_cond_t task_empty = PTHREAD_COND_INITIALIZER; //任务队列为空
     pthread_pool->max_number = t;
-    pthread_pool->front = NULL;
+    pthread_mutex_init(&pthread_pool->point, NULL);
+    pthread_cond_init(&pthread_pool->task_empty, NULL); //任务队列为空
     pthread_pool->tail = NULL;
     pthread_pool->flag = 1;
-    for (int i = 0; i < t; i++)
+    for (int i = 0; i < t; i++) //10
     {
         pthread_create(&pthread_pool->a[i], NULL, pool_fuction, NULL);
     }
@@ -105,29 +107,40 @@ void pool_destory(int t)
     {
         pthread_join(pthread_pool->a[i], NULL);
     }
-    while (pthread_pool->front )
+    while (pthread_pool->front)
     {
         free(pthread_pool->front);
         pthread_pool->front = pthread_pool->front->next;
     }
     free(pthread_pool->front);
-    pthread_mutex_destroy(&pthread_pool->point);
+    pthread_mutex_destroy(&pthread_pool->point); //10
     pthread_cond_destroy(&pthread_pool->task_empty);
     free(pthread_pool);
     printf("销毁完成\n");
 }
+
+// #include <atomic.h>
+
+pthread_mutex_t m = PTHREAD_MUTEX_INITIALIZER;
+
+int a = 0;
+
 void *fctl()
 {
-    printf("线程%lu is working\n", pthread_self());
-    sleep(2);
+    pthread_mutex_lock(&m);
+    printf("%d\n", a++);
+    // printf("线程%lu is working\n", pthread_self());
+    pthread_mutex_unlock(&m);
+    return NULL;
 }
 int main()
 {
-    pool_init(min);
-    for (int i = 0; i < 15; i++)
+    printf("!\n");
+    pool_init(10);
+    for (int i = 0; i < 100000; i++)
     {
         add_task(fctl, NULL);
     }
     sleep(5);
-    pool_destory(min);
+    pool_destory(10);
 }
