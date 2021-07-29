@@ -1,6 +1,6 @@
 #include "chatroom.h"
 pack *recv_pack;
-pack *send_pack; //群聊有问题看看
+pack *send_pack; 
 pthnode *pthead;
 groupnode *grohead;
 int sock_fd;
@@ -17,9 +17,10 @@ pthread_mutex_t groups = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t forget = PTHREAD_COND_INITIALIZER;
 pthread_cond_t toget = PTHREAD_COND_INITIALIZER;
 void cli_find();
-int cli_sign();
+int cli_sign();   //收文件
 void cli_regist();
 void cli_chuli();
+void cli_cleargroup();
 void recvs();
 void *nextst();
 void chatjuti();
@@ -48,10 +49,11 @@ void cli_cleargroup();
 void cli_groupchat();
 void cli_grouphistroy();
 void cli_sendfile();
+void cli_recvfile();
 void cli_sendfile() //文件传输
 {
     int fd;
-    off_t t=0;
+    off_t t = 0;
     struct stat buf;
     printf("请输入接收文件的名字：");
     scanf("%s", send_pack->recv_name);
@@ -63,10 +65,11 @@ void cli_sendfile() //文件传输
         tiao = 0;
         return;
     }
-    fstat(fd,&buf);
-    send_pack->id=buf.st_size;
+    fstat(fd, &buf);
+    send_pack->id = buf.st_size;
     send_t(send_pack, sock_fd);
-    sendfile(fd,sock_fd,&t,buf.st_size);
+    sendfile(sock_fd, fd, &t, buf.st_size);
+    close(fd);
 }
 void *grouprecv() //群聊天收包
 {
@@ -178,6 +181,7 @@ void *nextst()
         printf("%10s", "m.查看群消息\n");
         printf("%10s", "w.查看群历史\n");
         printf("%10s", "x.发送文件\n");
+        printf("%10s", "y.接收文件\n");
         printf("%10s", "q.退出\n");
         if (mes == 1)
         {
@@ -241,6 +245,9 @@ void *nextst()
         case 'x':
             cli_sendfile();
             break;
+        case 'y':
+            cli_recvfile();
+            break;
         case '\n':
         {
             tiao == 0;
@@ -261,6 +268,11 @@ void *nextst()
     }
     return NULL;
 }
+void cli_recvfile()
+{
+    printf("---文件接受中....-----\n");
+    send_t(send_pack, sock_fd);
+}
 void cli_allgroup()
 {
     printf("-------所有群聊-------\n");
@@ -276,7 +288,6 @@ void cli_groupmember()
 }
 void recvs() //收数据包
 {
-    sleep(1);
     int t;
     pthread_t groupid;
     while (1)
@@ -416,6 +427,44 @@ void recvs() //收数据包
             }
             break;
         }
+        case 'x':
+        {
+            printf("%s\n", recv_pack->work);
+            break;
+        }
+        case 'y': //收文件
+        {   
+            if(strcmp(recv_pack->work, "你暂时没有需要接收的文件")==0)
+            {
+                printf("%s\n",recv_pack->work);
+                break;
+            }
+            int fd, nfs,filesize;
+            char files[100], rands[20];
+            char sizefile[1023];
+            int recvsize = 1023;
+            filesize = recv_pack->id;
+            nfs = filesize / 1023 + 1;
+            getcwd(files, sizeof(files));
+            memset(rands, 0, sizeof(rands));
+            rand_file(rands);
+            files[strlen(files)] = '/';
+            strncat(files, rands, sizeof(rands));
+            while (nfs--)
+            {
+                if (filesize < 1023)
+                    recvsize = filesize;
+                filesize -= 1023;
+                recv(sock_fd, sizefile, recvsize, 0);
+                fd = open(files, O_WRONLY | O_CREAT | O_APPEND, 0644);
+                write(fd, sizefile, recvsize);
+            }
+            printf("接受完成文件地址:%s\n", files);
+            strcpy(recv_pack->work, "yes");
+            send_t(recv_pack, sock_fd);
+            close(fd);
+            break;
+        }
         case 'j':
         {
             mes = 0;
@@ -483,8 +532,14 @@ void recvs() //收数据包
                     printf("%s%s\n", pthead->name, pthead->work);
                     break;
                 }
+                case 10:
+                {
+                    printf("你有来自%s的文件，快去接受吧\n", pthead->name);
+                    break;
+                }
                 default:
                     printf("群聊%s的新消息，去群聊历史里看看吧，或进入群聊参与聊天\n");
+                    break;
                 }
             }
         }

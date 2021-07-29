@@ -2,6 +2,7 @@
 MYSQL mysql;
 pthnode *pthead;
 int mes = 0;
+int ep_fd;
 int grchat = 1;
 node *head = NULL;
 node *end = NULL;
@@ -42,22 +43,43 @@ infonode *find_info(char *s);
 void group_chat(pack *recv_pack);
 void group_histroy(pack *recv_pack);
 void send_file(pack *recv_pack);
+void recv_file(pack *recv_pack);
 void send_file(pack *recv_pack)
 {
     char files[100], rands[20];
+    char s[200];
     char sizefile[1024];
-    int fd,nfs;
+    int fd, filesize, nfs, number = 0;
+    struct epoll_event ep_id;
+    int recvsize = 1023;
+    filesize = recv_pack->id;
+    nfs = filesize / 1023 + 1;
     getcwd(files, sizeof(files));
     memset(rands, 0, sizeof(rands));
     rand_file(rands);
     files[strlen(files)] = '/';
     strncat(files, rands, sizeof(rands));
-    fd = open(files, O_WRONLY | O_CREAT);
-    if((nfs=recv(recv_pack->send_id,sizefile,1023,0))==0)
+    sprintf(s, "insert into message(recv_name,send_name,id,works)values(\'%s\',\'%s\',%d,\'%s\')",
+            recv_pack->recv_name, recv_pack->send_name, 10, files);
+    mysql_in_del(s);
+    sprintf(s, "insert into files(recv_name,send_name,file_name,id)values(\'%s\',\'%s\',\'%s\',1)",
+            recv_pack->recv_name, recv_pack->send_name, files);
+    mysql_in_del(s);
+    while (nfs--)
     {
-      strcpy(recv_pack->work,"已经成功发送");
-      send_t(recv_pack,recv_pack->send_id);
+        if (filesize < 1023)
+            recvsize = filesize;
+        filesize -= 1023;
+        recv(recv_pack->send_id, sizefile, recvsize, 0);
+        fd = open(files, O_WRONLY | O_CREAT | O_APPEND, 0644);
+        write(fd, sizefile, recvsize);
     }
+    close(fd);
+    ep_id.data.fd = recv_pack->send_id;
+    ep_id.events = EPOLLIN;
+    epoll_ctl(ep_fd, EPOLL_CTL_ADD, recv_pack->send_id, &ep_id); //将该文件描述符添加到epoll
+    strcpy(recv_pack->work, "已经成功发送");
+    send_t(recv_pack, recv_pack->send_id);
 }
 void group_histroy(pack *recv_pack)
 {
@@ -456,8 +478,6 @@ void mysql_select_words(char *buf, pack *recv_pack, int t) //查询多条信息,
         }
         else if (t == 1)
         {
-            pthread_mutex_lock(&group);
-            groupnode *p = grohead->next;
             while ((row = mysql_fetch_row(result)) != 0)
             {
                 for (unsigned int i = 0; i < mysql_num_fields(result); i++)
@@ -467,13 +487,12 @@ void mysql_select_words(char *buf, pack *recv_pack, int t) //查询多条信息,
                         strcpy(s->name, (void *)row[i]);
                         s->status = atoi(row[i + 1]);
                         if (row[i + 2] != NULL)
-                            strcpy(s->work, row[i + 2]);
+                            strncpy(s->work, row[i + 2], sizeof(s->work));
                         s = s->next;
                     }
                     break;
                 }
             }
-            pthread_mutex_unlock(&group);
             sprintf(recv_pack->work, "%d", number);
         }
         else if (t == 3)
@@ -550,6 +569,64 @@ void recv_t(pack *s, int fd)
     if (recv(fd, s, sizeof(pack), 0) < 0)
         my_err("recv", __LINE__);
 }
+void recv_file(pack *recv_pack)
+{
+    char s[200], file[100];
+    int fd, flag;
+    int t = 0;
+    off_t st;
+    struct epoll_event ep_id;
+    struct stat buf;
+    MYSQL_RES *result;
+    MYSQL_ROW row;
+    MYSQL_FIELD *field;
+    sprintf(s, "select file_name from files where recv_name=\'%s\' and id>0", recv_pack->send_name);
+    t = mysql_select(s, recv_pack, 3);
+    if (t == 0)
+    {
+        strcpy(recv_pack->work, "你暂时没有需要接收的文件");
+        send_t(recv_pack, recv_pack->send_id);
+        return;
+    }
+    else
+        strcpy(recv_pack->work, "正在接收中请稍后");
+    pthread_mutex_lock(&mysqs);
+    flag = mysql_query(&mysql, s);
+    if (flag)
+    {
+        mysql_error(&mysql);
+    }
+    result = mysql_store_result(&mysql);
+    pthread_mutex_unlock(&mysqs);
+    if (result)
+    {
+        while ((row = mysql_fetch_row(result)) != 0)
+        {
+            for (unsigned int i = 0; i < mysql_num_fields(result); i++)
+            {
+                if (row[i])
+                {
+                    strcpy(file, row[i]);
+                    break;
+                }
+            }
+        }
+    }
+    fd = open(file, O_RDONLY);
+    fstat(fd, &buf);
+    recv_pack->id = buf.st_size;
+    send_t(recv_pack, recv_pack->send_id);
+    sendfile(recv_pack->send_id, fd, NULL, buf.st_size);
+    close(fd);
+    recv_t(recv_pack, recv_pack->send_id);
+    if (strcmp(recv_pack->work, "yes") == 0)
+    {
+        sprintf(s, "update file set id=0 where file_name=\'%s\' and id>0", file);
+    }
+    ep_id.data.fd = recv_pack->send_id;
+    ep_id.events = EPOLLIN;
+    epoll_ctl(ep_fd, EPOLL_CTL_ADD, recv_pack->send_id, &ep_id); //将该文件描述符添加到epolli
+}
 void *body(void *arg)
 {
     pack *packs = ((pack *)arg);
@@ -612,7 +689,10 @@ void *body(void *arg)
         group_histroy(recv_pack);
         break;
     case 'x':
-        send_file();
+        send_file(recv_pack);
+        break;
+    case 'y':
+        recv_file(recv_pack);
         break;
     default:
         break;
@@ -961,7 +1041,7 @@ void message(pack *recv_pack) //消息中心
 int main()
 
 {
-    int lid, cid, ep_fd;
+    int lid, cid;
     signal(SIGPIPE, SIG_IGN);
     head = (node *)malloc(sizeof(node));
     head->next = NULL;
@@ -1078,6 +1158,10 @@ int main()
                 else
                 {
                     packs->send_id = ep_ids[i].data.fd;
+                    if (packs->cho == 'x' || packs->cho == 'y')
+                    {
+                        epoll_ctl(ep_fd, EPOLL_CTL_DEL, ep_ids[i].data.fd, &ep_id);
+                    }
                     if (pthread_create(&pid, NULL, body, (void *)packs))
                     {
                         my_err("thread_create", __LINE__);
