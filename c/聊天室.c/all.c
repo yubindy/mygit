@@ -44,6 +44,51 @@ void group_chat(pack *recv_pack);
 void group_histroy(pack *recv_pack);
 void send_file(pack *recv_pack);
 void recv_file(pack *recv_pack);
+void delmumber(pack *recv_pack);
+void blackmumber(pack *recv_pack)
+{
+    char s[200];
+    int t = 0;
+    sprintf(s, "select * from friend where recv_name=\'%s\'and send_name=\'%s\'union "
+               "select * from friend where recv_name=\'%s\'and send_name=\'%s\'",
+            recv_pack->recv_name, recv_pack->send_name, recv_pack->send_name, recv_pack->recv_name);
+    if (t == mysql_select(s, recv_pack, 3)) //如果没有加好友
+    {
+        strcpy(recv_pack->work, "对不起，你暂时没有该好友");
+        send_t(recv_pack, recv_pack->send_id);
+        return;
+    }
+    sprintf(s, "update friend set id=1 where recv_name=\'%s\'and send_name=\'%s\'",
+            recv_pack->recv_name, recv_pack->send_name);
+    mysql_in_del(s);
+    sprintf(s, "update friend set id=1 where recv_name=\'%s\'and send_name=\'%s\'",
+            recv_pack->send_name, recv_pack->recv_name);
+    mysql_in_del(s);
+    strcpy(recv_pack->work, "设置成功，已经屏蔽该用户消息");
+    send_t(recv_pack, recv_pack->send_id);
+}
+void delmumber(pack *recv_pack)
+{
+    char s[200];
+    int t = 0;
+    sprintf(s, "select * from groups where id=%d and name=\'%s\' and id>0",
+            recv_pack->id, recv_pack->send_name);
+    t = mysql_select(s, recv_pack, 3);
+    if (t == 0)
+    {
+        strncpy(recv_pack->work, "你没有该群的管理人员权限", sizeof(recv_pack->work));
+        send_t(recv_pack, recv_pack->send_id);
+        return;
+    }
+    sprintf(s, "delete from groups where name=\'%s\' and id=%d", recv_pack->recv_name,recv_pack->id);
+    mysql_in_del(s);
+    sprintf(recv_pack->work, "已经将你从群聊%d中移除", recv_pack->id);
+    sprintf(s, "insert into message(recv_name,send_name,id,works)values(\'%s\',\'%s\',%d,\'%s\')",
+            recv_pack->recv_name, recv_pack->send_name, 8, recv_pack->work);
+    mysql_in_del(s);
+   sprintf(recv_pack->work, "已经将\'%s\'从群聊%d中移除",recv_pack->recv_name,recv_pack->id);
+   send_t(recv_pack,recv_pack->send_id);
+}
 void send_file(pack *recv_pack)
 {
     char files[100], rands[20];
@@ -179,7 +224,7 @@ void cleargroup(pack *recv_pack) //解散群
     char s[200];
     groupnode *p = grohead->next;
     int t;
-    sprintf(s, "select * from groups where status==2 and id=%d and name=\'%s\'",
+    sprintf(s, "select * from groups where status=2 and id=%d and name=\'%s\'",
             recv_pack->id, recv_pack->send_name);
     t = mysql_select(s, recv_pack, 3);
     if (t == 0)
@@ -198,10 +243,11 @@ void cleargroup(pack *recv_pack) //解散群
             sprintf(s, "insert into message(recv_name,send_name,id)" //将群解散消息逐一发送用户
                        "values(\'%s\',\'%s\',9,\'已经解散群%d\')",
                     p->name, recv_pack->send_name, recv_pack->id);
+            mysql_in_del(s);
             p = p->next;
         }
         pthread_mutex_unlock(&group);
-        sprintf(s, "delete from groups where id=%s", recv_pack->id);
+        sprintf(s, "delete from groups where id=%d", recv_pack->id);
         mysql_in_del(s);
         strcpy(recv_pack->work, "解散群聊成功");
         send_t(recv_pack, recv_pack->send_id);
@@ -211,8 +257,8 @@ void setgroup(pack *recv_pack) //设置群管理员
 {
     char s[200];
     char bus[40];
-    int t;
-    sprintf(s, "select * from groups id=%d and name=\'%s\'",
+    int t=0;
+    sprintf(s, "select * from groups where id=%d and name=\'%s\'",
             recv_pack->id, recv_pack->recv_name);
     t = mysql_select(s, recv_pack, 3);
     if (t == 0)
@@ -221,18 +267,24 @@ void setgroup(pack *recv_pack) //设置群管理员
         send_t(recv_pack, recv_pack->send_id);
         return;
     }
-    else
+    sprintf(s, "select * from groups where id=%d and name=\'%s\' and status>0",
+            recv_pack->id, recv_pack->send_name);
+    t = mysql_select(s, recv_pack, 3);
+    if (t == 0)
     {
-        sprintf(s, "update groups set status=1 where id=%d and name=\'%s\'",
-                recv_pack->id, recv_pack->recv_name);
-        mysql_in_del(s);
-        strcpy(recv_pack->work, "已经设置管理员成功");
+        strcpy(recv_pack->work, "对不起，你暂时不是该群的管理员");
         send_t(recv_pack, recv_pack->send_id);
-        sprintf(s, "insert into message(recv_name,send_name,id,works)"
-                   "values(\'%s\',\'%s\',8,\'成功把你设置为群号%d的管理员\')",
-                recv_pack->recv_name, recv_pack->send_name, recv_pack->id);
-        mysql_in_del(s);
+        return;
     }
+    sprintf(s, "update groups set status=1 where id=%d and name=\'%s\'",
+            recv_pack->id, recv_pack->recv_name);
+    mysql_in_del(s);
+    strcpy(recv_pack->work, "已经设置管理员成功");
+    send_t(recv_pack, recv_pack->send_id);
+    sprintf(s, "insert into message(recv_name,send_name,id,works)"
+               "values(\'%s\',\'%s\',8,\'成功把你设置为群号%d的管理员\')",
+            recv_pack->recv_name, recv_pack->send_name, recv_pack->id);
+    mysql_in_del(s);
 }
 void groupmember(pack *recv_pack) //查看群中所有群成员
 {
@@ -245,12 +297,11 @@ void groupmember(pack *recv_pack) //查看群中所有群成员
     recv_pack->id = mysql_select(s, recv_pack, 4);
     t = recv_pack->id;
     send_t(recv_pack, recv_pack->send_id);
-    sprintf(s, "select name from groups where id=%d", id);
+    sprintf(s, "select name,status from groups where id=%d", id);
     pthread_mutex_lock(&group);
-    mysql_select_words(s, recv_pack, 5);
+    mysql_select_words(s, recv_pack, 6);
     for (int i = 0; i < t; i++)
     {
-        p->id = id;
         if (send(recv_pack->send_id, p, sizeof(groupnode), 0) < 0)
         {
             my_err("send", __LINE__);
@@ -383,12 +434,18 @@ void chat_friend(pack *recv_pack) //私聊
         }
         else //如果无，写进去
         {
-            sprintf(s, "select * from friend where recv_name=\'%s\'and send_name=\'%s\'union "
-                       "select * from friend where recv_name=\'%s\'and send_name=\'%s\'",
+            sprintf(s, "select id from friend where recv_name=\'%s\'and send_name=\'%s\'union "
+                       "select id from friend where recv_name=\'%s\'and send_name=\'%s\'",
                     recv_pack->recv_name, recv_pack->send_name, recv_pack->send_name, recv_pack->recv_name);
-            if (t == mysql_select(s, recv_pack, 3)) //如果没有加好友
+            if (t == mysql_select(s, recv_pack, 7)) //如果没有加好友
             {
                 strcpy(recv_pack->work, "对不起，你暂时没有该好友");
+                send_t(recv_pack, recv_pack->send_id);
+                return;
+            }
+            if (recv_pack->id == 1)
+            {
+                strcpy(recv_pack->work, "对不起，对方已经将你屏蔽不会收到消息");
                 send_t(recv_pack, recv_pack->send_id);
                 return;
             }
@@ -537,6 +594,23 @@ void mysql_select_words(char *buf, pack *recv_pack, int t) //查询多条信息,
                     if (row[i])
                     {
                         strcpy(p->name, (void *)row[i]);
+                        p = p->next;
+                    }
+                    break;
+                }
+            }
+        }
+        else if (t == 6)
+        {
+            groupnode *p = grohead->next;
+            while ((row = mysql_fetch_row(result)) != 0)
+            {
+                for (unsigned int i = 0; i < mysql_num_fields(result); i++)
+                {
+                    if (row[i])
+                    {
+                        strcpy(p->name, (void *)row[i]);
+                        p->id = atoi(row[i + 1]);
                         p = p->next;
                     }
                     break;
@@ -694,6 +768,12 @@ void *body(void *arg)
     case 'y':
         recv_file(recv_pack);
         break;
+    case 'u':
+        delmumber(recv_pack);
+        break;
+    case 'z':
+        blackmumber(recv_pack);
+        break;
     default:
         break;
     }
@@ -779,6 +859,12 @@ int mysql_select(char *buf, pack *recv_pack, int t) //数据库查询单条消�
                     {
                         strcpy(recv_pack->recv_name, row[i]);
                         strcpy(recv_pack->work, row[i + 1]);
+                        return 1;
+                    }
+                    case 7:
+                    {
+                        recv_pack->id = atoi(row[i]);
+                        mysql_free_result(result);
                         return 1;
                     }
                     default:
@@ -913,7 +999,7 @@ void fri_histroy(pack *recv_pack) //查看好友历史
     sprintf(s, "select * from friend where recv_name=\'%s\'and send_name=\'%s\'union "
                "select * from friend where recv_name=\'%s\'and send_name=\'%s\'",
             recv_pack->recv_name, recv_pack->send_name, recv_pack->send_name, recv_pack->recv_name);
-    if (t == mysql_select(s, recv_pack, 3)) //如果没有加好友
+    if (t = mysql_select(s, recv_pack, 3) == 0) //如果没有加好友
     {
         strcpy(recv_pack->work, "对不起，你暂时没有该好友");
         send_t(recv_pack, recv_pack->send_id);

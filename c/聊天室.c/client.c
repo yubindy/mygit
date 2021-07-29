@@ -1,6 +1,6 @@
 #include "chatroom.h"
 pack *recv_pack;
-pack *send_pack; 
+pack *send_pack;
 pthnode *pthead;
 groupnode *grohead;
 int sock_fd;
@@ -17,7 +17,7 @@ pthread_mutex_t groups = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t forget = PTHREAD_COND_INITIALIZER;
 pthread_cond_t toget = PTHREAD_COND_INITIALIZER;
 void cli_find();
-int cli_sign();   //收文件
+int cli_sign(); //收文件
 void cli_regist();
 void cli_chuli();
 void cli_cleargroup();
@@ -50,6 +50,22 @@ void cli_groupchat();
 void cli_grouphistroy();
 void cli_sendfile();
 void cli_recvfile();
+void cli_delmumber();
+void cli_blackmumber();
+void cli_blackmumber() //设置黑名单
+{
+    printf("请输入需要屏蔽消息的用户:");
+    scanf("%s", send_pack->recv_name);
+    send_t(send_pack, sock_fd);
+}
+void cli_delmumber() //踢人
+{
+    printf("请选择群聊:");
+    scanf("%d", &send_pack->id);
+    printf("\n请选择用户:");
+    scanf("%s", send_pack->recv_name);
+    send_t(send_pack, sock_fd);
+}
 void cli_sendfile() //文件传输
 {
     int fd;
@@ -76,9 +92,7 @@ void *grouprecv() //群聊天收包
     while (1)
     {
         recv_t(recv_pack, sock_fd);
-        printf("%s:%s\n", recv_pack->send_name, recv_pack->work);
-        if (flag == 0)
-            pthread_exit(0);
+        printf("\n%s:%s\n", recv_pack->send_name, recv_pack->work);
     }
 }
 void cli_groupchat() //群聊
@@ -98,7 +112,7 @@ void cli_groupchat() //群聊
 void cli_cleargroup()
 {
     printf("请选择要解散的群聊群号：");
-    scanf("%d", recv_pack->id);
+    scanf("%d", &send_pack->id);
     send_t(send_pack, sock_fd);
 }
 void cli_joingroup() //添加群聊
@@ -166,6 +180,7 @@ void *nextst()
         printf("%10s", "d.加好友\n");
         printf("%10s", "e.删除好友\n");
         printf("%10s", "f.显示全部好友和状态\n");
+        printf("%10s", "z.设置黑名单\n");
         printf("%10s", "g.私聊\n");
         printf("%10s", "h.创建群\n");
         printf("%10s", "i.退群\n");
@@ -178,7 +193,7 @@ void *nextst()
         printf("%10s", "l.传输文件\n");
         printf("%10s", "j.消息中心\n");
         printf("%10s", "n.查看好友历史\n");
-        printf("%10s", "m.查看群消息\n");
+        printf("%10s", "u.从群聊中踢人\n");
         printf("%10s", "w.查看群历史\n");
         printf("%10s", "x.发送文件\n");
         printf("%10s", "y.接收文件\n");
@@ -225,6 +240,7 @@ void *nextst()
             break;
         case 's':
             cli_cleargroup();
+            break;
         case 'q':
         {
             close(sock_fd);
@@ -242,11 +258,17 @@ void *nextst()
         case 'w':
             cli_grouphistroy();
             break;
+        case 'u':
+            cli_delmumber();
+            break;
         case 'x':
             cli_sendfile();
             break;
         case 'y':
             cli_recvfile();
+            break;
+        case 'z':
+            cli_blackmumber();
             break;
         case '\n':
         {
@@ -283,7 +305,7 @@ void cli_groupmember()
     printf("-------所有成员-------\n");
     printf("需要查看群成员的群号:\n");
     scanf("%d", &send_pack->id);
-    printf("-----所有群群成员-----\n");
+    printf("-----所有群群成员-----(0.普通成员 1.管理员 2.群主）\n");
     send_t(send_pack, sock_fd);
 }
 void recvs() //收数据包
@@ -327,12 +349,27 @@ void recvs() //收数据包
         }
         case 'g':
         {
+            if (strcmp(recv_pack->work, "对不起，你暂时没有该好友") == 0 || strcmp(recv_pack->work, "对不起，对方已经将你屏蔽不会收到消息") == 0)
+            {
+                printf("%s\n", recv_pack->work);
+                break;
+            }
             chatjuti();
+            break;
+        }
+        case 'u':
+        {
+            printf("%s\n", recv_pack->work);
+            break;
+        }
+        case 'z':
+        {
+            printf("%s\n", recv_pack->work);
             break;
         }
         case 'h':
         {
-            printf("%s", recv_pack->work);
+            printf("%s\n", recv_pack->work);
             printf("群名：%s 群号：%d\n", recv_pack->recv_name, recv_pack->send_nums);
             break;
         }
@@ -370,7 +407,7 @@ void recvs() //收数据包
             for (int i = 0; i < sum; i++)
             {
                 recv(sock_fd, (void *)grohead, sizeof(groupnode), 0);
-                printf("群号:%d 成员:%s\n", grohead->id, grohead->name);
+                printf("群号:%s 成员:%s  权限：%d\n",recv_pack->nums,grohead->name,grohead->id);
             }
             break;
         }
@@ -408,7 +445,10 @@ void recvs() //收数据包
                 if (strcmp(send_pack->work, "~exit") == 0)
                     flag = 0;
                 if (flag == 0)
+                {   
+                    pthread_cancel(groupid);
                     break;
+                }
             }
             break;
         }
@@ -433,13 +473,13 @@ void recvs() //收数据包
             break;
         }
         case 'y': //收文件
-        {   
-            if(strcmp(recv_pack->work, "你暂时没有需要接收的文件")==0)
+        {
+            if (strcmp(recv_pack->work, "你暂时没有需要接收的文件") == 0)
             {
-                printf("%s\n",recv_pack->work);
+                printf("%s\n", recv_pack->work);
                 break;
             }
-            int fd, nfs,filesize;
+            int fd, nfs, filesize;
             char files[100], rands[20];
             char sizefile[1023];
             int recvsize = 1023;
