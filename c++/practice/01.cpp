@@ -1,13 +1,13 @@
-#include<iostream>
-using std::cin;
-using std::cout;
-using std::endl;
+#include <iostream>
+#include <string.h>
+#include <cctype>
+#include <vector>
+using namespace std;
 int main()
-{  
-   int t=0,s=0;
-   cin>>t;
-   for(int i=0;i<=t;i++)
-   s+=i;
-   cout<<"sum is "<<s<<endl;
+{
+   string s("some string");
+   for(auto it=s.begin();it!=s.end()&&;it++)
+   *it=toupper(*it);
+   cout<<s<<endl;
    return 0;
 }
