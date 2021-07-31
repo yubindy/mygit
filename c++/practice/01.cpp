@@ -5,9 +5,26 @@
 using namespace std;
 int main()
 {
-   string s("some string");
-   for(auto it=s.begin();it!=s.end()&&;it++)
-   *it=toupper(*it);
-   cout<<s<<endl;
-   return 0;
+  vector<string> s;
+  vector<int> t;
+  string a,b;
+  int x=1,y=0;
+  while(cin>>a)
+  {
+     if(a==b)
+     {
+        ++x;
+     }
+     else
+     {  
+        cout<<x<<endl;
+        t.push_back(x);
+        b=a;
+     }
+  }
+  for(auto num:t)
+  {
+     y=x>num?x:num;
+  }
+  cout<<y<<endl; 
 }

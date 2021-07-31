@@ -1,13 +1,11 @@
-#include "all.h"
+#include <iostream>
+#include <string.h>
+#include <cctype>
+#include <vector>
+using namespace std;
 int main()
 {
-    string s;
-    vector<string> t;
-    while (cin >> s)
-    {
-        t.push_back(s);
-    }
-    for (int i = 0; i < s.size(); i++)
-        cout << t[i];
-    return 0;
+     int p[10];
+     int s=end(p)-begin(p);
+     cout<<s<<endl;
 }
