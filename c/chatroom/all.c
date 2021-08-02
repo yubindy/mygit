@@ -25,7 +25,7 @@ void registered(pack *recv_pack);
 void sign(pack *recv_pack);
 void find_words(pack *recv_pack);
 void send_file();
-int find_status(char *name);
+int find_status(char *name,int nums,int fds);
 void add_friend(pack *recv_pack);
 void del_friend(pack *recv_pack);
 void select_friend(pack *recv_pack);
@@ -80,14 +80,14 @@ void delmumber(pack *recv_pack)
         send_t(recv_pack, recv_pack->send_id);
         return;
     }
-    sprintf(s, "delete from groups where name=\'%s\' and id=%d", recv_pack->recv_name,recv_pack->id);
+    sprintf(s, "delete from groups where name=\'%s\' and id=%d", recv_pack->recv_name, recv_pack->id);
     mysql_in_del(s);
     sprintf(recv_pack->work, "已经将你从群聊%d中移除", recv_pack->id);
     sprintf(s, "insert into message(recv_name,send_name,id,works)values(\'%s\',\'%s\',%d,\'%s\')",
             recv_pack->recv_name, recv_pack->send_name, 8, recv_pack->work);
     mysql_in_del(s);
-   sprintf(recv_pack->work, "已经将\'%s\'从群聊%d中移除",recv_pack->recv_name,recv_pack->id);
-   send_t(recv_pack,recv_pack->send_id);
+    sprintf(recv_pack->work, "已经将\'%s\'从群聊%d中移除", recv_pack->recv_name, recv_pack->id);
+    send_t(recv_pack, recv_pack->send_id);
 }
 void send_file(pack *recv_pack)
 {
@@ -213,11 +213,19 @@ void group_chat(pack *recv_pack) //群聊
 void joingroup(pack *recv_pack) //加入群
 {
     char s[200];
-    sprintf(s, "insert into message(recv_name,send_name,id,works)values(\'%d\',\'%s\',3,\'%d\')",
-            recv_pack->id, recv_pack->send_name, recv_pack->id);
-    mysql_in_del(s);
-    strcpy(recv_pack->work, "加入申请已发送");
-    send_t(recv_pack, recv_pack->send_id);
+    sprintf(s, "select * from groups where id=%d and name=\'%s\'",
+            recv_pack->send_nums, recv_pack->send_name);
+    if (mysql_select(s, recv_pack, 3) == 1)
+    {
+        strcpy(recv_pack->work, "对不起，你已经加入群聊，不可重复加入");
+        send_t(recv_pack, recv_pack->send_id);
+        return;
+    }
+sprintf(s, "insert into message(recv_name,send_name,id,works)values(\'%d\',\'%s\',3,\'%d\')",
+        recv_pack->id, recv_pack->send_name, recv_pack->id);
+mysql_in_del(s);
+strcpy(recv_pack->work, "加入申请已发送");
+send_t(recv_pack, recv_pack->send_id);
 }
 void cleargroup(pack *recv_pack) //解散群
 {
@@ -257,7 +265,7 @@ void setgroup(pack *recv_pack) //设置群管理员
 {
     char s[200];
     char bus[40];
-    int t=0;
+    int t = 0;
     sprintf(s, "select * from groups where id=%d and name=\'%s\'",
             recv_pack->id, recv_pack->recv_name);
     t = mysql_select(s, recv_pack, 3);
@@ -385,9 +393,11 @@ void panduan_message(pack *recv_pack) //判断该对应用户，是否有消息
     send_t(recv_pack, recv_pack->send_id);
     return;
 }
-int find_status(char *name) //查找用户在线否
+int find_status(char *name,int nums,int fds) //查找用户在线否
 {
     node *cname = head;
+    if(nums==0)
+    {
     while (cname != NULL)
     {
         if (strcmp(cname->t, name) == 0)
@@ -397,6 +407,22 @@ int find_status(char *name) //查找用户在线否
         if (cname == NULL)
             return 0;
         cname = cname->next;
+    }
+    return 0;
+    }
+    else
+    {
+        while (cname != NULL)
+    {
+        if (fds==cname->id)
+        {
+            return 1;
+        }
+        if (cname == NULL)
+            return 0;
+        cname = cname->next;
+    }
+    return 0;
     }
     return 0;
 }
@@ -453,7 +479,7 @@ void chat_friend(pack *recv_pack) //私聊
                        "values(\'%s\',\'%s\',1,\'%s\')",
                     recv_pack->recv_name, recv_pack->send_name, recv_pack->work);
             mysql_in_del(s);
-            if (t == find_status(recv_pack->recv_name)) //如果对方不在线,加入消息表
+            if (t == find_status(recv_pack->recv_name,recv_pack->nums,0)) //如果对方不在线,加入消息表
             {
                 sprintf(s, "insert into message(recv_name,send_name,id,works)" //id=7，好友未读消息
                            "values(\'%s\',\'%s\',7,\'%s\')",
@@ -525,7 +551,7 @@ void mysql_select_words(char *buf, pack *recv_pack, int t) //查询多条信息,
                         if (strcmp((char *)row[i], recv_pack->send_name) != 0)
                         {
                             strcpy(s->work, (void *)row[i]);
-                            s->status = find_status(s->work);
+                            s->status = find_status(s->work,0,0);
                             s = s->next;
                         }
                     }
@@ -636,7 +662,7 @@ void send_t(pack *s, int fd)
     ssize_t nfs;
     if ((nfs = send(fd, s, sizeof(pack), 0)) < 0)
         my_err("send", __LINE__);
-    printf("%zd\n", nfs);
+    printf("%zd\n", fd);
 }
 void recv_t(pack *s, int fd)
 {
@@ -913,6 +939,12 @@ void registered(pack *recv_pack) //注册函数
 void sign(pack *recv_pack) //登陆函数
 {
     char s[200];
+    if(find_status(recv_pack->send_name,recv_pack->send_nums,1)==1)
+    {
+        strncpy(recv_pack->work,"该用户已经登陆，不可重复登陆，请重试",sizeof(recv_pack->work));
+        send_t(recv_pack,recv_pack->send_id);
+        return;
+    }
     sprintf(s, "select username from user_all where number=%d and password=\'%s\'", recv_pack->send_nums, recv_pack->work);
     mysql_select(s, recv_pack, 2);
     send_t(recv_pack, recv_pack->send_id);
@@ -951,11 +983,30 @@ void find_words(pack *recv_pack) //找回密码
 void add_friend(pack *recv_pack) //加好友
 {
     char s[200];
-    int t = 0;
+    int t = 0, n = 0;
     sprintf(s, "select * from user_all where username=\'%s\'", recv_pack->recv_name);
-    if (t == mysql_select(s, recv_pack, 3))
+    t = mysql_select(s, recv_pack, 3);
+    sprintf(s, "select id from friend where recv_name=\'%s\'and send_name=\'%s\'union "
+               "select id from friend where recv_name=\'%s\'and send_name=\'%s\'",
+            recv_pack->recv_name, recv_pack->send_name, recv_pack->send_name, recv_pack->recv_name);
+    n = mysql_select(s, recv_pack, 7); //如果没有加好友
+    if (t == 0)
     {
         strcpy(recv_pack->work, "没有找到该用户"); //没有找到好友
+        send_t(recv_pack, recv_pack->send_id);
+        return;
+    }
+    else if (strcmp(recv_pack->send_name, recv_pack->recv_name) == 0) //如果添加自己为好友
+    {
+        strcpy(recv_pack->work, "对不起，不能添加自己为好友");
+        send_t(recv_pack, recv_pack->send_id);
+        return;
+    }
+    else if (n == 1)
+    {
+        strcpy(recv_pack->work, "对不起，你已经添加此人为好友,不可以重复加好友");
+        send_t(recv_pack, recv_pack->send_id);
+        return;
     }
     else
     {
@@ -1074,8 +1125,8 @@ void message(pack *recv_pack) //消息中心
             recv_t(recv_pack, recv_pack->send_id);
             if (strcmp(recv_pack->work, "yes") == 0)
             {
-                sprintf(s, "insert into friend(recv_name,send_name)" //加入好友
-                           "values(\'%s\',\'%s\')",
+                sprintf(s, "insert into friend(recv_name,send_name,id)" //加入好友
+                           "values(\'%s\',\'%s\',0)",
                         recv_pack->send_name, recv_pack->recv_name);
                 mysql_in_del(s);
                 sprintf(s, "update message set id=4,send_name=\'%s\',recv_name=\'%s\'"

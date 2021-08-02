@@ -157,7 +157,7 @@ void chatjuti()
             break;
         recv_t(recv_pack, sock_fd);
     }
-    printf("退出聊天");
+    printf("退出聊天\n");
 }
 void friend_histroy()
 {
@@ -191,8 +191,8 @@ void *nextst()
         printf("%-20s\n", "   |p.显示群成员");
         printf("%-20s", "|g.私聊");
         printf("%-20s\n", "|r.群权限设置");
-        printf("%-20s", "|l.传输文件");
-        printf("%-20s\n", "  |s.解散群聊天");
+        printf("%-20s", "|q.退出");
+        printf("%-20s\n", "|s.解散群聊天");
         printf("%-20s", "|j.消息中心");
         printf("%-20s\n", "  |t.加入群聊天");
         printf("%-20s", "|n.查看好友历史");
@@ -201,7 +201,6 @@ void *nextst()
         printf("%-20s\n", "  |u.从群聊中踢人");
         printf("%-20s", "|y.接收文件");
         printf("%-20s\n", "  |w.查看群历史");
-        printf("%-20s\n", "|q.退出");
         if (mes == 1)
         {
             printf("***你有新的消息，快去消息中心处理吧***\n");
@@ -704,7 +703,7 @@ int cli_sign()
 }
 void cli_regist()
 {
-    printf("请输入昵称：");
+    printf("(注意名字不可以超过10个字符)请输入昵称：");
     scanf("%s", send_pack->send_name);
     mima(send_pack->work);
     while (1)
@@ -815,7 +814,8 @@ int main()
     }
     if (connect(sock_fd, (struct sockaddr *)&cid, sizeof(cid)) < 0)
     {
-        my_err("connect", __LINE__);
+        printf("对不起，服务器地址错误,程序退出");
+        exit(1);
     }
     cli_delu();
 }
