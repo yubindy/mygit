@@ -1,15 +1,28 @@
-
 #include <iostream>
+#include<string>
 #include<vector>
-#include <string>
 using namespace std;
-int main()
-{	
-	string s("cdsiao dcsdcs?!!!");
-	//int num = s.size();
-	for (char i=0 ; i<s.size() ; i++)
+void printVec(vector<int>& vec)
+{
+#ifndef NDEBUG
+	cout << "vector size: " << vec.size() << endl;
+#endif
+	if (!vec.empty()) 
 	{
-		if(!ispunct(s[i]))
-        cout<<s[i];
+		auto tmp = vec.back();
+		vec.pop_back();
+		printVec(vec);
+		cout << tmp << " ";
 	}
+}
+int main(int argc, char** argv)
+{
+	vector<int> vec;
+	for(int i=0;i<10;i++)
+	{
+		vec.push_back(i);
+	}
+	printVec(vec);
+	cout << endl;
+	return 0;
 }
