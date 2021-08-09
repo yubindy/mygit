@@ -1,12 +1,14 @@
-#include<stdio.h>
+#include <stdio.h>
+int add(int x, int y, int *dest)
+{
+    int all = x + y;
+    *dest = all;
+}
 int main()
 {
-    int t=2;
-    unsigned int s=3;
-    if(t-s>=0)
+    int x = 3, y = 4;
+    int t = 0;
+    add(x, y, &t);
     printf("%d",t);
-    else
-    printf("%d",s);
     return 0;
-    
 }
