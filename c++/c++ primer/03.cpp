@@ -15,7 +15,7 @@ void printVec(vector<int>& vec)
 		printVec(vec);
 		cout << tmp << " ";
 	}
-}
+} 
 int main(int argc, char** argv)
 {
 	vector<int> vec;

@@ -1,37 +1,43 @@
 #include <iostream>
+#include <algorithm>        // std::count_if
+#include <vector>
 #include <string>
+#include <fstream>          // std::ifstream
+#include <sstream>          // std::istringstream
+#include <stdexcept>        // std::cerr
 
-using namespace std;
-
-class Employee {
+class StrLenIs {
 private:
-    static int sn;
+    int len_;
+
 public:
-    Employee() { mysn = sn++; }
-    Employee(const string &s) : name(s), mysn(sn++) { }
-    // 为 13.19 题定义的拷贝构造函数和拷贝赋值运算符
-    //Employee(const Employee &e) : name(e.name), mysn(sn++) { }
-    Employee &operator=(Employee &rhs) {
-        name = rhs.name;
-        return *this;
+    StrLenIs(int len) : len_(len) { }
+    bool operator()(const std::string &str) {
+        return str.length() == len_;
     }
-    const string &get_name() { return name; }
-    int get_mysn() { return mysn; }
-private:
-    string name;
-    int mysn;
 };
 
-int Employee::sn = 0;
-
-void f(Employee &s) {
-    cout << s.get_name() << ":" << s.get_mysn() << endl;
-}
-
-int main() {
-    Employee a("陈"), b = a, c;
-    c = b;
-    f(a); f(b); f(c);
-
+int main(int argc, char *argv[]) {
+    std::ifstream in("/home/zhaozeyu/Desktop/base/study/code/ggggg.txt");
+    if (!in) {
+        std::cerr << "无法打开输入文件" << std::endl;
+        return -1;
+    }
+    std::vector<std::string> svec;
+    std::string line;
+    std::string word;
+    while (getline(in, line)) {
+        std::istringstream l_in(line);          // 构造字符串流，读取单词
+        while (l_in >> word)
+            svec.push_back(word);
+    }
+    const int minLen = 1;
+    const int maxLen = 10;
+    for (int i = minLen; i <= maxLen; ++i) {
+        StrLenIs strObj(i);
+        std::cout << "len : " << i << ", cnt : "
+                  << std::count_if(svec.begin(),svec.end(), strObj)
+                  << std::endl;
+    }
     return 0;
 }

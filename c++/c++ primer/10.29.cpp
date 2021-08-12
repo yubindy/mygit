@@ -8,7 +8,7 @@ using namespace std;
 int main()
 {
     vector <string> vec;
-    ifstream in("c++/practice/9.41.cpp");
+    ifstream in("/home/zhaozeyu/Desktop/base/study/code/c++/c++ primer/03.cpp");
     istream_iterator<string> in_iter(in),eof;
     while (in_iter!=eof)
     {
