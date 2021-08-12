@@ -1,5 +1,6 @@
 #include <iostream>
 #include<string>
+#include<algorithm>
 #include<vector>
 using namespace std;
 void printVec(vector<int>& vec)
