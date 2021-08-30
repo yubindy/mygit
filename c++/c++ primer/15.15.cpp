@@ -32,7 +32,6 @@ public:
     Disc_quote(const std::string &book, double price,
                std::size_t qty, double disc) : Quote(book, price), nums(qty), cnt(disc) {}
     double net_price(std::size_t) const = 0;
-
 protected:
     size_t nums = 0;
     double cnt = 0.0;
