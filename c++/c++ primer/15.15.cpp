@@ -15,7 +15,7 @@ private:
     string bookNo;
 
 public:
-    Quote() = default;
+    Quote() = default;  
     Quote(const string &book, double sales_price)
         : bookNo(book), price(sales_price) {}
     string isbn() const { return bookNo; }
@@ -43,7 +43,7 @@ public:
     Bulk_Quote(const string &book, double sales_price, size_t number, double zc) : Disc_quote(book,sales_price,number,zc) {}
     virtual double net_price(size_t n) const override;
 };
-double Bulk_Quote::net_price(size_t n) const
+double Bulk_Quote::net_price(size_t n) const 
 {
     if (n >= nums)
         return n * (1 - cnt) * price;
