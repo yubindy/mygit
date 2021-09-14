@@ -80,7 +80,8 @@
         "semaphore": "cpp",
         "stop_token": "cpp",
         "streambuf": "cpp",
-        "cinttypes": "cpp"
+        "cinttypes": "cpp",
+        "iomanip": "cpp"
     },
     "code-runner.executorMap": {
         "javascript": "node",
