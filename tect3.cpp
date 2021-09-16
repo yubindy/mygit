@@ -42,7 +42,7 @@ int main()
          }
       }
     cin >> a >> b >> e >> c >> d;
-    if (a == '(' && d == ')')
+    if (a == '(' && d == ')') 
       {
          for (it = y.begin(); it != y.end(); it++)
          {
