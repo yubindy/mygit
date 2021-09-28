@@ -91,7 +91,7 @@ public:
     }
 };
 template <typename T, typename... Args>
-myshared<T> make_myshared(Args &&...args)
+myshared<T> make_myshared(Args &&...args)  //转发
 {
     return myshared<T>(std::forward<Args>(args)...);
 }

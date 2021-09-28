@@ -1,14 +1,10 @@
 #include <iostream>
+#include <cstring>
 #include <string.h>
 #include <cctype>
 #include <vector>
-using namespace std;
 template <typename T>
-auto fcn(T a,T b)->decltype(*a)
+class myvector
 {
-   return 0;
-}
-int main()
-{
-
+ 
 }
