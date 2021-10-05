@@ -9,7 +9,7 @@ bool operator==(const myshared<T> &a, const myshared<T> &b);
 template <typename T>
 class myshared
 {
-    friend bool operator==(const myshared<T> &a, const myshared<T> &b);
+    friend bool operator==(const myshared<c++ memoryT> &a, const myshared<T> &b);
 
 private:
     T *ptr;
@@ -91,7 +91,7 @@ public:
     }
 };
 template <typename T, typename... Args>
-myshared<T> make_myshared(Args &&...args)  //转发
+myshared<T> make_myshared(Args &&...args)  //转发打包
 {
     return myshared<T>(std::forward<Args>(args)...);
 }
