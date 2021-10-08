@@ -34,4 +34,5 @@ int main()
     }
     cout << endl; 
     return 0;
+    vector<int>::iterator it;
 }

@@ -18,19 +18,16 @@ int main()
     p = std::make_pair(x, y);
     s[x][y] = 1;
     t.push(p);
-    int tag=0,i=0;
-    while (i<=64)
+    int tag = 0, i = 0;
+    while (i <= 64)
     {
-    if(flag==0)
-    {
-    tag=0;
+        if (flag == 0)
+        {
+            tag = 0;
+        }
+        else
+        {
+            p = t.top();
+        }
     }
-    else
-    {
-        p=t.top();
-        
-    }
-    
-    }
-    
 }

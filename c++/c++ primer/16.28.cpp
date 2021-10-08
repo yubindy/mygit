@@ -77,7 +77,7 @@ public:
     {
         if (*cnt == 1)
         {
-            del ? del(ptr) : delete (ptr);
+            del ? del(ptr) : delete (ptr);象能
             std::cout << "reset delete this now";
             delete cnt;
         }
