@@ -1,8 +1,14 @@
 #include<stdio.h>
+#include<unistd.h>
+void doit()
+{
+    fork();
+    fork();
+    printf("hhh1\n");
+}
 int main()
 {
-    int i=0x1234567;
-    char t=i;
-    printf("%x \n",t);
-    return 0;
+    doit();
+    printf("hhh2\n");
+    exit(0);
 }
