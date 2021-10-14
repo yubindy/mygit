@@ -14,7 +14,7 @@ int main()
       for (int j = 1; j < 9; j++)
          s[i][j] = 0;
    std::stack<std::pair<int, int>> t;
-   std::pair<int, int> p, q;
+   std::pair<int, int> p,q;
    scanf("%d%d", &x, &y);
    p = std::make_pair(x, y);
    s[x][y] = 1;

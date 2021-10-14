@@ -9,8 +9,7 @@ bool operator==(const myshared<T> &a, const myshared<T> &b);
 template <typename T>
 class myshared
 {
-    friend bool operator==(const myshared<c++ memoryT> &a, const myshared<T> &b);
-
+    friend bool operator==(const myshared<T> &a, const myshared<T> &b);
 private:
     T *ptr;
     size_t *cnt;
@@ -77,7 +76,7 @@ public:
     {
         if (*cnt == 1)
         {
-            del ? del(ptr) : delete (ptr);象能
+            del ? del(ptr) : delete (ptr);
             std::cout << "reset delete this now";
             delete cnt;
         }

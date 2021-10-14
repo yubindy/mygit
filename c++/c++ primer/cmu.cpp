@@ -41,7 +41,7 @@ public:
         shared_ptr<string> beg;
         for (int i = 0; i < t.size(); i++)
         {
-        
+         
         }
     }
 }; 

@@ -1,33 +1,30 @@
-#include <stack>
-#include <stdio.h>
+#include <iostream>
 #include <vector>
-#include <utility>
+using namespace std;
+class Solution
+{
+public:
+    int peakIndexInMountainArray(vector<int> &arr)
+    {
+        int left = 0, right = arr.size() - 1;
+        int mid;
+        while (right > left)
+        {
+            mid = (left + right) / 2;
+            if (arr[mid] > arr[mid - 1] && arr[mid] > arr[mid + 1])
+                return mid; 
+            else if (arr[mid] > arr[mid - 1])
+                left = mid;
+            else if (arr[mid] > arr[mid + 1])
+                right = mid;
+        }
+        return 0;
+    }
+};
 int main()
 {
-    int s[9][9];
-    int a[8][2] = {{-2, 1}, {-1, 2}, {1, 2}, {2, 1}, {2, -1}, {1, -2}, {-1, -2}, {-2, -1}};
-    int x, y;
-    int step[65];
-    int flag = 0;
-    for (int i = 1; i < 9; i++)
-        for (int j = 1; j < 9; j++)
-            s[i][j] = 0;
-    std::stack<std::pair<int, int>> t;
-    std::pair<int, int> p, q;
-    scanf("%d%d", &x, &y);
-    p = std::make_pair(x, y);
-    s[x][y] = 1;
-    t.push(p);
-    int tag = 0, i = 0;
-    while (i <= 64)
-    {
-        if (flag == 0)
-        {
-            tag = 0;
-        }
-        else
-        {
-            p = t.top();
-        }
-    }
+    Solution val;
+    vector<int> s{24,69,100,99,79,78,67,36,26,19};
+    int t=val.peakIndexInMountainArray(s);
+    return 0;
 }
