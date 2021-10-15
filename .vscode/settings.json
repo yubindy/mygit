@@ -81,7 +81,8 @@
         "stop_token": "cpp",
         "streambuf": "cpp",
         "cinttypes": "cpp",
-        "iomanip": "cpp"
+        "iomanip": "cpp",
+        "forward_list": "cpp"
     },
     "code-runner.executorMap": {
         "javascript": "node",
