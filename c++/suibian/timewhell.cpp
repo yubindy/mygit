@@ -19,17 +19,13 @@ class client_data
 };
 class timer
 {
-private:
+public:
     void (*fun)(client_data *val);
-    client_data *val;
+    client_data *vals;
     int rot;
     int slot;
-    timer *next;
-    timer *prev;
-
-public:
     timer(int prot, int pslot) : rot(prot),
-                                 slot(pslot), next(NULL), prev(NULL) {}
+                                 slot(pslot) {}
 };
 class timer_wheel
 {
@@ -48,7 +44,7 @@ public:
     }
     ~timer_wheel()
     {
-        std::forward_list<std::shared_ptr<timer *>> t;
+        std::forward_list<std::shared_ptr<timer>> t;
         for (int i = 0; i < val; i++)
         {
             t = *sot[i];
@@ -72,12 +68,27 @@ public:
         while (pa++ != (*sot[slot]).end())
             pb++;
         pa = (*sot[slot]).insert_after(pb, pt);
-         printf( "add timer,还需%d圈,第%d个槽中插入,现在是第%d个槽\n", rot, slot, now_slot );
+        printf("add timer,还需%d圈,第%d个槽中插入,现在是第%d个槽\n", rot, slot, now_slot);
         return pt;
     }
-    void del_timer(timer* val)
+    void del_timer(timer *po)
     {
-    s
+        if (!po)
+            return;
+        //std::shared_ptr<timer> s=*(*sot[now_slot]).begin();
+        printf("现在时间轮是%d个槽", now_slot);
+        for (auto t=sot[now_slot]->begin();t!=sot[now_slot]->end();t++)
+        {
+            if ((*t)->rot > 0)
+                (*t)->rot--;
+            else
+            {
+            (*t)->fun((*t)->vals);
+            printf("删除在%d个槽上定时器",now_slot);
+            sot[now_slot]->erase_after(t);
+            }
+        }
+        now_slot=++now_slot%N;
     }
 };
 #endif
