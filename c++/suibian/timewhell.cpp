@@ -24,8 +24,7 @@ public:
     client_data *vals;
     int rot;
     int slot;
-    timer(int prot, int pslot) : rot(prot),
-                                 slot(pslot) {}
+    timer(int prot, int pslot) : rot(prot),slot(pslot) {}
 };
 class timer_wheel
 {
@@ -89,6 +88,6 @@ public:
             }
         }
         now_slot=++now_slot%N;
-    }
+     
 };
 #endif
