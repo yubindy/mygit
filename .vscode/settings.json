@@ -82,7 +82,9 @@
         "streambuf": "cpp",
         "cinttypes": "cpp",
         "iomanip": "cpp",
-        "forward_list": "cpp"
+        "forward_list": "cpp",
+        "event.h": "c",
+        "problem": "c"
     },
     "code-runner.executorMap": {
         "javascript": "node",
