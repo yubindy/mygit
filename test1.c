@@ -1,52 +1,53 @@
-#include <stdio.h>
+#include<stdio.h>
+#include<stdlib.h>
+typedef char DataType;
+
+typedef struct CSNode
+{
+    DataType data;
+    struct CSNode * FirstChild;
+    struct CSNode * NextSibling;
+}CSNode,*CSTree;
+
+CSTree CreatCSTree(); //以对应二叉树的扩展先序遍历序列创建树
+int NumOfLeaf(CSTree  rt);
+
 int main()
 {
-    int a, b;
-    int x, y;
-    int pe, pa;
-    int flag=0;
-    scanf("%d%d", &a, &b);
-    int t[a][b];
-    int da[a], de[b];
-    for (int i = 0; i < a; i++)
-        for (int j = 0; j < b; j++)
-        {
-            scanf("%d", &t[i][j]);
-        }
-    for (int i = 0; i < a; i++)
-    {
-        pe = t[i][0];
-        for (int j = 1; j < b; j++)
-        {
-            if (t[i][j] < pe)
-                pe = t[i][j];
-        }
-        da[i] = pe;
-    }
-    for (int j = 0; j < b; j++)
-    {
-        pa = t[0][j];
-        for (int i = 1; i < a; i++)
-        {
-            if (t[i][j] > pa)
-                pa = t[i][j];
-        }
-        de[j] = pa;
-    }
-    for (int i = 0; i < a; i++)
-    {
-        for (int j = 0; j < b; j++)
-        {
-            if (t[i][j] == da[i])
-            {
-                if (da[i] == de[j])
-                {   flag=1;
-                    printf("(%d,%d,%d)", i+1, j + 1, t[i][j]);
-                }
-            }
-        }
-    }
-    if(flag==0)
-    printf("NONE");
-    return 0;
+    CSTree root;
+    root=CreatCSTree();
+    printf("%d\n",NumOfLeaf(root));
 }
+
+CSTree CreatCSTree()//以对应二叉树的扩展先序遍历序列创建树 
+{
+    CSTree root;
+    char ch;
+    ch=getchar();
+    if(ch=='^')
+        return NULL;
+    root=(CSTree )malloc(sizeof(CSNode));
+    root->data=ch;
+    root->FirstChild = CreatCSTree();
+    root->NextSibling = CreatCSTree();
+    return root;
+}
+
+int NumOfLeaf(CSTree  rt)
+{   
+    int t=0;
+    if(!rt)
+    return 0;
+    if(rt->FirstChild==NULL&&rt->NextSibling==NULL)
+    t++;
+    if(rt->FirstChild)
+    {
+      t+=NumOfLeaf(rt->FirstChild);
+    }
+    if(rt->NextSibling)
+    {
+      t+=NumOfLeaf(rt->NextSibling);
+    }
+    return t;
+}
+/* 请在这里填写答案 */

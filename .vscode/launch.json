@@ -3,7 +3,33 @@
     "version": "0.2.0",
     "configurations": [
         {
-             "name": "clang", // 配置名称，将会在启动配置的下拉菜单中显示
+            "name": "(gdb) 启动",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "输入程序名称，例如 ${workspaceFolder}/a.out",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${fileDirname}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "为 gdb 启用整齐打印",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "Python",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "clang", // 配置名称，将会在启动配置的下拉菜单中显示
             "type": "cppdbg", // 配置类型，cppdbg对应cpptools提供的调试功能；可以认为此处只能是cppdbg
             "request": "launch", // 请求配置类型，可以为launch（启动）或attach（附加）
             "program": "${fileDirname}/${fileBasenameNoExtension}.out", // 将要进行调试的程序的路径
@@ -21,7 +47,7 @@
             "setupCommands": [
                 { // 模板自带，好像可以更好地显示STL容器的内容，具体作用自行Google
                     "description": "Enable pretty-printing for gdb",
-                     "text": "-gdb-set follow-fork-mode child"/*"-enable-pretty-printing"*/,
+                    "text": "-gdb-set follow-fork-mode child" /*"-enable-pretty-printing"*/,
                     "ignoreFailures": false
                 }
             ],
