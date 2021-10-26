@@ -1,50 +1,86 @@
 #include <iostream>
-#include <vector>
+#include <new>
+#include <memory>
+#include<vector>
 using namespace std;
-class Solution
+class tree;
+class node
+{
+    friend class tree;
+
+private:
+    char val;
+    shared_ptr<node> left;
+    shared_ptr<node> right;
+
+public:
+    node() = default;
+    ~node() = default;
+};
+class tree
 {
 public:
-    int peakIndexInMountainArray(vector<int> &arr)
+    shared_ptr<node> root;
+    int num;
+    tree()
     {
-        int left = 0, right = arr.size() - 1;
-        int mid;
-        while (right > left)
+        root = nullptr;
+        num = 0;
+    }
+    ~tree() {}
+    shared_ptr<node> create()
+    {
+        char t;
+        cin >> t;
+        if (t == '^')
+            return nullptr;
+        shared_ptr<node> s=make_shared<node>();
+        s->val=t;
+        s->left = create();
+        s->right = create();
+        return s;
+    }
+    void tree_front(shared_ptr<node> p)
+    {
+        if (!root)
         {
-            mid = (left + right) / 2;
-            if (arr[mid] > arr[mid - 1] && arr[mid] > arr[mid + 1])
-                return mid; 
-            else if (arr[mid] > arr[mid - 1])
-                left = mid;
-            else if (arr[mid] > arr[mid + 1])
-                right = mid;
+            return;
         }
-        return 0;
+        cout << p->val;
+        tree_front(p->left);
+        tree_front(p->right);
+        return;
+    }
+    void tree_middle(shared_ptr<node> p)
+    {
+        if (!root)
+        {
+            return;
+        }
+        tree_front(p->left);
+        cout << p->val;
+        tree_front(p->right);
+        return;
+    }
+    void tree_end(shared_ptr<node> p)
+    {
+        if (!root)
+        {
+            return;
+        }
+        tree_front(p->left);
+        tree_front(p->right);
+        cout << p->val;
+        return;
     }
 };
 int main()
 {
-    Solution val;
-    vector<int> s{24,69,100,99,79,78,67,36,26,19};
-    int t=val.peakIndexInMountainArray(s);
+    tree s;
+    s.root = s.create();
+    int i;
+    s.tree_front(s.root);
+    s.tree_middle(s.root);
+    s.tree_end(s.root);
     return 0;
 }
-class Solution {
-public:
-    int kthSmallest(TreeNode* root, int k) {
-        stack<TreeNode *> stack;
-        while (root != nullptr || stack.size() > 0) {
-            while (root != nullptr) {
-                stack.push(root);
-                root = root->left;
-            }
-            root = stack.top();
-            stack.pop();
-            --k;
-            if (k == 0) {
-                break;
-            }
-            root = root->right;
-        }
-        return root->val;
-    }
-};

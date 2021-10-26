@@ -32,7 +32,6 @@ CSTree CreatCSTree()//以对应二叉树的扩展先序遍历序列创建树
     root->NextSibling = CreatCSTree();
     return root;
 }
-
 int NumOfLeaf(CSTree  rt)
 {   
     int t=0;

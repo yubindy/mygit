@@ -1,9 +1,7 @@
-#include<time.h>
-#include<stdio.h>
+extern int printf();
 int main()
 {
-    time_t usr;
-    usr=time(NULL);
-    printf("%ld ",usr);
+    int t=10;
+    printf("%d",t);
     return 0;
 }

@@ -1,6 +1,4 @@
-
-#include <stdio.h>
-#include <stdlib.h>
+extern int printf();
 typedef char DataType;
 typedef struct Node
 {
@@ -47,5 +45,4 @@ BiTree CreatBiTree() //用扩展先序遍历序列创建二叉链表
     bt->Rchild = CreatBiTree();
     return bt;
 }
-
 /* 请在这里填写答案 */

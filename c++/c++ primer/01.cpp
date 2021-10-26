@@ -3,6 +3,7 @@
 #include <cctype>
 #include <vector>
 #include <set>
+#include<new>
 using namespace std;
 class Solution
 {
