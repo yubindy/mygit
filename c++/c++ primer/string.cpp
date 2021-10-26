@@ -12,7 +12,7 @@ private:
 
 public:
     mystring() = default;
-    mystring(char *s)
+    explicit mystring(char *s)
     {
         if (s == NULL)
         {
@@ -27,7 +27,7 @@ public:
             strcpy(t, s);
         }
     }
-    mystring(mystring &s)
+    explicit mystring(mystring &s)
     {
 
         len = s.len;
@@ -41,7 +41,7 @@ public:
     }
     int size()
     {
-       return len; 
+        return len;
     }
     mystring operator+(const mystring &s)
     {
@@ -85,5 +85,5 @@ ostream &operator<<(ostream &is, mystring &s)
 int main()
 {
     mystring s("hfgjgyjh");
-    cout<<s<<" "<<s.size()<<endl;
+    cout << s << " " << s.size() << endl;
 }
