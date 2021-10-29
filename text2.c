@@ -1,48 +1,45 @@
-extern int printf();
+#include <stdio.h>
+#include <stdlib.h>
 typedef char DataType;
-typedef struct Node
+
+typedef struct CSNode
 {
     DataType data;
-    struct Node *Lchild;
-    struct Node *Rchild;
-} BiTNode, *BiTree;
+    struct CSNode *FirstChild;
+    struct CSNode *NextSibling;
+} CSNode, *CSTree;
 
-int Degree2(BiTree bt)
-{
-    int t = 0;
-    if (!bt)
-        return 0;
-    if (bt->Lchild && bt->Rchild)
-        t++;
-    if (!bt->Lchild)
-    {
-        t += Degree2(bt->Lchild);
-    }
-    if (!bt->Rchild)
-    {
-        t += Degree2(bt->Rchild);
-    }
-    return t;
-}
-BiTree CreatBiTree(); //用扩展先序遍历序列创建二叉链表
+CSTree CreatCSTree(); //以对应二叉树的扩展先序遍历序列创建树
+int GetHeight(CSTree rt);
 
 int main()
 {
-    BiTree root;
-    root = CreatBiTree();
-    printf("%d\n", Degree2(root));
+    CSTree root;
+    root = CreatCSTree();
+    printf("%d\n", GetHeight(root));
 }
-BiTree CreatBiTree() //用扩展先序遍历序列创建二叉链表
+
+CSTree CreatCSTree() //以对应二叉树的扩展先序遍历序列创建树
 {
-    BiTree bt;
+    CSTree root;
     char ch;
     ch = getchar();
     if (ch == '^')
         return NULL;
-    bt = (BiTree)malloc(sizeof(BiTNode));
-    bt->data = ch;
-    bt->Lchild = CreatBiTree();
-    bt->Rchild = CreatBiTree();
-    return bt;
+    root = (CSTree)malloc(sizeof(CSNode));
+    root->data = ch;
+    root->FirstChild = CreatCSTree();
+    root->NextSibling = CreatCSTree();
+    return root;
+}
+int GetHeight(CSTree rt)
+{
+    int a,b,t;
+    if (!rt)
+        return 0;
+    a=GetHeight(rt->FirstChild)+1;
+    b=GetHeight(rt->NextSibling);
+    return a>b?a:b;
+    
 }
 /* 请在这里填写答案 */

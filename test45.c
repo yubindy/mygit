@@ -1,7 +1,7 @@
-extern int printf();
+#include<stdio.h>
 int main()
 {
-    int t=10;
+    int const t=10;
     printf("%d",t);
     return 0;
 }
