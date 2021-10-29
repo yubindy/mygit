@@ -84,7 +84,8 @@
         "iomanip": "cpp",
         "forward_list": "cpp",
         "event.h": "c",
-        "problem": "c"
+        "problem": "c",
+        "locale_t.h": "c"
     },
     "code-runner.executorMap": {
         "javascript": "node",
