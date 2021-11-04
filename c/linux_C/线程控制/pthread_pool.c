@@ -137,7 +137,7 @@ int main()
 {
     printf("!\n");
     pool_init(10);
-    for (int i = 0; i < 100000; i++)
+    for (int i = 0; i < 20; i++)
     {
         add_task(fctl, NULL);
     }

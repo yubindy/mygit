@@ -85,7 +85,9 @@
         "forward_list": "cpp",
         "event.h": "c",
         "problem": "c",
-        "locale_t.h": "c"
+        "locale_t.h": "c",
+        "linux_c.h": "c",
+        "string.h": "c"
     },
     "code-runner.executorMap": {
         "javascript": "node",

@@ -1,45 +1,39 @@
-#include <stdio.h>
-#include <stdlib.h>
-typedef char DataType;
-
-typedef struct CSNode
-{
-    DataType data;
-    struct CSNode *FirstChild;
-    struct CSNode *NextSibling;
-} CSNode, *CSTree;
-
-CSTree CreatCSTree(); //以对应二叉树的扩展先序遍历序列创建树
-int GetHeight(CSTree rt);
-
+#include<stdio.h>
+#include<string.h>
 int main()
 {
-    CSTree root;
-    root = CreatCSTree();
-    printf("%d\n", GetHeight(root));
-}
+	char a[201], b[201];
+	int i,j;
+	int len_a, len_b,max;
+	scanf("%s", a);
+	scanf("%s", b);
+	len_a = strlen(a);
+	len_b = strlen(b);
+	max = (len_a > len_b) ? len_a : len_b;
+	a[max + 1] = '\0';
+	for (i = 0; i < len_a; i++)
+		a[max - i] = a[len_a - i - 1];
+	for (i = 0; i < len_b; i++)
+		b[max - i] = b[len_b - i - 1];
+	for (i = 0; i <= max - len_a; i++)
+		a[i] ='0';
+	for (i = 0; i <= max - len_b; i++)
+		a[i] ='0';
 
-CSTree CreatCSTree() //以对应二叉树的扩展先序遍历序列创建树
-{
-    CSTree root;
-    char ch;
-    ch = getchar();
-    if (ch == '^')
-        return NULL;
-    root = (CSTree)malloc(sizeof(CSNode));
-    root->data = ch;
-    root->FirstChild = CreatCSTree();
-    root->NextSibling = CreatCSTree();
-    return root;
+	j = 0;
+	for (i = 0; i < max; i++)
+	{
+		j = (a[max - i] + b[max - i] + j - 96);
+		a[max - i] = j % 10 + 48;
+		j = j / 10;
+	}
+	if (j > 0) {
+		a[0] = j+48;
+		printf("%s", a);
+	}
+		
+	else
+		printf("%s", a + 1);
+
+		
 }
-int GetHeight(CSTree rt)
-{
-    int a,b,t;
-    if (!rt)
-        return 0;
-    a=GetHeight(rt->FirstChild)+1;
-    b=GetHeight(rt->NextSibling);
-    return a>b?a:b;
-    
-}
-/* 请在这里填写答案 */

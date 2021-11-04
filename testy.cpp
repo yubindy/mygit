@@ -1,86 +1,148 @@
-#include <iostream>
-#include <new>
-#include <memory>
-#include<vector>
-using namespace std;
-class tree;
-class node
+#include <stdio.h>
+#include <stack>
+#include <vector>
+#include <queue>
+#include <deque>
+typedef struct node
 {
-    friend class tree;
-
-private:
-    char val;
-    shared_ptr<node> left;
-    shared_ptr<node> right;
-
-public:
-    node() = default;
-    ~node() = default;
-};
+    int pt;
+    struct node *left;
+    struct node *right;
+} node;
+using namespace std;
 class tree
 {
 public:
-    shared_ptr<node> root;
-    int num;
-    tree()
+    tree() = default;
+    ~tree() = default;
+    node *create()
     {
-        root = nullptr;
-        num = 0;
+        char ch;
+        ch = getchar();
+        if (ch == '#')
+            return NULL;
+        node *t = new node;
+        t->pt = ch;
+        t->left = create();
+        t->right = create();
+        return t;
     }
-    ~tree() {}
-    shared_ptr<node> create()
+    void cengci(node *root)
     {
-        char t;
-        cin >> t;
-        if (t == '^')
-            return nullptr;
-        shared_ptr<node> s=make_shared<node>();
-        s->val=t;
-        s->left = create();
-        s->right = create();
-        return s;
-    }
-    void tree_front(shared_ptr<node> p)
-    {
-        if (!root)
+        queue<node *> s;
+        s.push(root);
+        while (!s.empty())
         {
-            return;
+            printf("%c", s.front()->pt);
+            if (s.front()->left != nullptr)
+                s.push(s.front()->left);
+            if (s.front()->right != nullptr)
+                s.push(s.front()->right);
+            s.pop();
         }
-        cout << p->val;
-        tree_front(p->left);
-        tree_front(p->right);
         return;
     }
-    void tree_middle(shared_ptr<node> p)
+    void front(node *root)
     {
-        if (!root)
+        stack<node *> s;
+        node *t = root;
+        vector<char> pt;
+        while (t != nullptr || !s.empty())
         {
-            return;
+            while (t != nullptr)
+            {
+                printf("%c", t->pt);
+                s.push(t);
+                t = t->left;
+            }
+            t = s.top();
+            s.pop();
+            t = t->right;
         }
-        tree_front(p->left);
-        cout << p->val;
-        tree_front(p->right);
-        return;
     }
-    void tree_end(shared_ptr<node> p)
+    void middle(node *root)
     {
-        if (!root)
+        stack<node *> s;
+        node *t = root;
+        while (t != nullptr || !s.empty())
         {
-            return;
+            while (t != nullptr)
+            {
+                printf("%c", t->pt);
+                s.push(t);
+                t = t->right;
+            }
+            t = s.top();
+            s.pop();
+            t = t->left;
         }
-        tree_front(p->left);
-        tree_front(p->right);
-        cout << p->val;
-        return;
+    }
+    void end(node *root)
+    {
+        stack<node *> s;
+        vector<char> p;
+        node *t = root;
+        while (t != nullptr || !s.empty())
+        {
+            while (t != nullptr)
+            {
+                p.push_back(t->pt);
+                s.push(t);
+                t = t->right;
+            }
+            t = s.top();
+            s.pop();
+            t = t->left;
+        }
+        for (auto i = p.rbegin(); i != p.rend(); i++)
+        {
+            printf("%c", *i);
+        }
+    }
+    int high(node* root)
+    {
+        int a,b;
+        if(root==nullptr)
+        return 0;
+        a=high(root->left);
+        b=high(root->right);
+        return a>b?a+1:b+1; 
+    }
+    void count(node* root)
+    {
+        int a=0,b=0,c=0;
+        stack<node*> s;
+        node* t=root;
+        vector<char> pt;
+        while (t!=nullptr||!s.empty())
+        {
+            while(t!=nullptr)
+            {   
+                if(t->left&&t->right)
+                a++;
+                else if(t->left||t->right)
+                b++;
+                else
+                {
+                c++;
+                pt.push_back(t->pt);
+                }
+                s.push(t);
+                t=t->left;
+            }
+            t=s.top();
+            s.pop();
+            t=t->right;
+        }
+        printf("%d %d %d\n",c,b,a);
+        for(auto i:pt)
+        printf("%c",i);
     }
 };
 int main()
 {
     tree s;
-    s.root = s.create();
-    int i;
-    s.tree_front(s.root);
-    s.tree_middle(s.root);
-    s.tree_end(s.root);
+    node *t = s.create();
+   printf("%d",s.high(t));
     return 0;
 }
