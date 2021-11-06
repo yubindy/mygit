@@ -20,15 +20,6 @@ public:
     int wei = 0;
     tree() = default;
     ~tree() = default;
-    // tree &operator=(const tree &t)
-    // {
-    //     val = t.val;
-    //     weight = t.weight;
-    //     father = t.father;
-    //     left = t.left;
-    //     right = t.left;
-    //     return *this;
-    // }
     friend bool operator<(const tree &a, const tree &b)
     {
         return a.weight < b.weight ? 1 : 0;
