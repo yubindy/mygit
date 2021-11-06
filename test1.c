@@ -49,4 +49,3 @@ int NumOfLeaf(CSTree  rt)
     }
     return t;
 }
-/* 请在这里填写答案 */

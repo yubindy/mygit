@@ -1,8 +1,11 @@
 #include<iostream>
+#include<string>
 int main()
 {
     int t;
-    std::cin>>t;
-    std::cout<<t;
-    return 0;  
+    char s[2];
+    std::cin>>s;
+    std::string h;
+    h=s;
+    std::cout<<h;
 }
