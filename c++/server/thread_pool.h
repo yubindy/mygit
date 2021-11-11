@@ -14,7 +14,7 @@ class pthread_pool
 {
 public:
     pthread_pool(int thread, int request)
-        : max_thread_num(thread), max_request(request),t_stop(false)
+        : max_thread_num(thread), max_request(request), t_stop(false)
     {
         pthread_mutex_init(&lock, NULL);
         num = new pthread_t[thread];
@@ -72,10 +72,10 @@ void *pthread_pool<T>::work_task(void *arg)
     {
         sem_wait(&t->source_num);
         pthread_mutex_lock(&t->lock);
-        if(!t->task.empty())
+        if (!t->task.empty())
         {
-          pthread_mutex_unlock(&t->lock);
-          continue;
+            pthread_mutex_unlock(&t->lock);
+            continue;
         }
         T task_now = t->task.push_front();
         pthread_mutex_unlock(&t->lock);
