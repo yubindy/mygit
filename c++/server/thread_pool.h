@@ -13,8 +13,8 @@ template <typename T>
 class pthread_pool
 {
 public:
-    pthread_pool(int thread, int request, t_stop = false)
-        : max_thread_num(thread), max_request(request)
+    pthread_pool(int thread, int request)
+        : max_thread_num(thread), max_request(request),t_stop(false)
     {
         pthread_mutex_init(&lock, NULL);
         num = new pthread_t[thread];
