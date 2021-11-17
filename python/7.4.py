@@ -7,4 +7,5 @@ while range(0,a):
         s[i]=input().split
         t[s[0]-1]=t[s[0]-1]+s[2]
         t[s[1]-1]=t[s[0]-1]+s[3]
+        
     
