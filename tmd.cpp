@@ -1,20 +1,18 @@
 #include <iostream>
+#include <vector>
 using namespace std;
-class A
+class TopVotedCandidate
 {
-private:
-   int data;
 public:
-   A(int num) : data(num) {}
-   ~A(){};
-   int &get_data()
+   TopVotedCandidate(vector<int> &persons, vector<int> &times):
+       per(persons),
+       time(times) {}
+   int q(int t)
    {
-      return data;
+    t=1;
+    return t;   
    }
+private:
+   vector<int> per;
+   vector<int> time;
 };
-int main()
-{
-   const A a(1);
-   a.get_data();
-   return 0;
-}
