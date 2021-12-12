@@ -87,7 +87,9 @@
         "problem": "c",
         "locale_t.h": "c",
         "linux_c.h": "c",
-        "string.h": "c"
+        "string.h": "c",
+        "shared_mutex": "cpp",
+        "cfenv": "cpp"
     },
     "code-runner.executorMap": {
         "javascript": "node",
