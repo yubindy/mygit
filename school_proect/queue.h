@@ -4,6 +4,7 @@
 #include<stdio.h>
 #include<assert.h>
 #include<vector>
+#include<stdlib.h>
 class node{
 public:
     std::pair<int,int> t;
@@ -22,8 +23,6 @@ private:
     int end;
 public:
     my_queue()=default;
-    void add()
-    void my_queue()=default;
     void add(int a,int b)
     {   
         que.push_back(node(a,b));

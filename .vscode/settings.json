@@ -89,7 +89,9 @@
         "linux_c.h": "c",
         "string.h": "c",
         "shared_mutex": "cpp",
-        "cfenv": "cpp"
+        "cfenv": "cpp",
+        "limits.h": "c",
+        "libgen.h": "c"
     },
     "code-runner.executorMap": {
         "javascript": "node",
