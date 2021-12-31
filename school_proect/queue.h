@@ -7,13 +7,14 @@
 #include<stdlib.h>
 class node{
 public:
-    std::pair<int,int> t;
+    std::pair<int,int> status;
     int n;
-    node(int a,int b)
+    node(int a,int b,int i)
     {
-        t=std::make_pair(a,b);
-        n=0;
+        status=std::make_pair(a,b);
+        n=i;
     }
+    node()=default;
 };
 class my_queue{
 private:
@@ -23,15 +24,14 @@ private:
     int end;
 public:
     my_queue()=default;
-    void add(int a,int b)
+    void add(int a,int b,int i)
     {   
-        que.push_back(node(a,b));
+        que.push_back(node(a,b,i));
     }
     node pop()
     {   
-        auto t=--que.end();
-        auto s=*t;
-        t=que.erase(t);
+        auto s=que.front();
+        que.erase(que.begin());
         return s;
     }
     bool empty()
@@ -39,11 +39,5 @@ public:
         return que.empty();
     }
 };
-void my_err(const char *err_string, int line)   //错误处理函数
-{
-   
-    fprintf(stderr, "line:%d", line);
-    perror(err_string);
-    exit(1);
-}
+
 #endif
