@@ -91,7 +91,10 @@
         "shared_mutex": "cpp",
         "cfenv": "cpp",
         "limits.h": "c",
-        "libgen.h": "c"
+        "libgen.h": "c",
+        "codecvt": "cpp",
+        "source_location": "cpp",
+        "coroutine": "cpp"
     },
     "code-runner.executorMap": {
         "javascript": "node",

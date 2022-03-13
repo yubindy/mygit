@@ -45,8 +45,6 @@ public:
     }
     ~processpoll()
     {
-        delete[] processes_information;
-        delete instance;
     }
     void run();
 
