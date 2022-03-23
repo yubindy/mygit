@@ -15,7 +15,6 @@ int main()
 {
 	std::promise<int> p;
 	std::future<int> fu = p.get_future();        // 并将结果返回给future
-    std
 	std::thread t(fun, 1, std::ref(p));
 	std::cout << fu.get() << std::endl;          // 当promise还没有值的时候在此等待
 	std::cout << std::this_thread::get_id() << std::endl;
