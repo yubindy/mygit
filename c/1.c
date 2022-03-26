@@ -29,7 +29,6 @@ int main() {
    printf("要输入的");
   scanf("%d",&s);
   int index = searchInsert(num, numsize, s);
-  printf("%d",index);
   insert(num, numsize, index,s);
   printf("\n");
   for (int i = 0; i <= numsize; i++) {
