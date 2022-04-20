@@ -1,4 +1,5 @@
 #include <stack>
+#include<map>
 using namespace std;
 class CQueue
 {
@@ -15,6 +16,8 @@ public:
 
     int deleteHead()
     {   int s=0;
+    map<int,int> t;
+    t.
         if (end.empty())
         {
             while (!fro.empty())
