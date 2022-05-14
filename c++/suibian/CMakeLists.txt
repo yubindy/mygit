@@ -1,5 +1,5 @@
 # Copyright(c) 2019 spdlog authors Distributed under the MIT License (http://opensource.org/licenses/MIT)
-
+//use spdlog 模板
 cmake_minimum_required(VERSION 3.10)
 project(spdlog_examples CXX)
 
