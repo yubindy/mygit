@@ -21,7 +21,7 @@ int main()
     
     spdlog::set_level(spdlog::level::debug); // Set global log level to debug
     spdlog::debug("This message should be displayed..");    
-    
+     spdlog::info("Support for floats {:03.2f}", 1.23456);
     // change log pattern
     spdlog::set_pattern("[%H:%M:%S %z] [%n] [%^---%L---%$] [thread %t] %v");
     
@@ -29,4 +29,5 @@ int main()
     // define SPDLOG_ACTIVE_LEVEL to desired level
     SPDLOG_TRACE("Some trace message with param {}", 42);
     SPDLOG_DEBUG("Some debug message");
+     spdlog::info("Support for floats {:03.2f}", 1.23456);
 }
