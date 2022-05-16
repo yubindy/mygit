@@ -1,4 +1,5 @@
 #include "spdlog/spdlog.h"
+#include<stdio.h>
 #include "spdlog/sinks/stdout_color_sinks.h"
 void stdout_example()
 {
