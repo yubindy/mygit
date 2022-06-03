@@ -3,6 +3,7 @@
 class A;
 class B;
 class A{
+    
 public:
     A(int a):s(a) {};
     ~A() {}
