@@ -19,6 +19,6 @@ public:
 int main()
 {
     Solution t;
-    t.hasAlternatingBits(5);
+    t.hasAlternatingBits(100);
     return 0;
 }
