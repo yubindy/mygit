@@ -1,36 +1,23 @@
-#include <bits/utility.h>
-#include <stdio.h>
-class A;
-class B;
-class A{
-    
+#include<vector>
+#include<stdio.h>
+using namespace std;
+class Solution {
 public:
-    A(int a):s(a) {};
-    ~A() {}
-   void tt() 
-   {
-    printf("%d\n",s);
-    return;
-   }
-private:
-    int s;
-};
-class B : public A{
-public:
-    B(int a,int b): A(a),t(b){};
-    ~B()=default;
-    void tte() 
-   {
-    tt();
-    printf("%d\n",t);
-    return;
-   }
-private:
-    int t;
+    int maxProfit(vector<int>& prices) {
+    int mins=0;
+    vector<int> s(prices.size(),0);
+    s[0]=0;
+    int n=1;
+    for(auto i=prices.begin()+1;i!=prices.end();i++){
+        mins=min(mins,*i);
+        s[n]=max(s[n-1],*i-mins);
+        n++;
+    }
+    return s[n-1];
+    }
 };
 int main(){
-    B se(1,2);
-    se.tte();
-    se.tt();
-    return 0;
+    class Solution t;
+    vector<int> tt{7,1,5,3,6,4};
+    printf("%d", t.maxProfit(tt));
 }
