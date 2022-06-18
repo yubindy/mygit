@@ -6,9 +6,8 @@ class Test {
     int a;
     int b;
 
-    Test() = default;
-
 public:
+    Test() = default;
     template <class... Args>
     std::shared_ptr<Test> create(Args &&...args) {
         class EnableMakeShared : public Test {
@@ -29,6 +28,6 @@ void ThreadMain(std::shared_ptr<Test> x) {
 int main() {
     auto t = std::make_shared<Test>();
     ThreadMain(std::move(t));
-    //auto t1 = std::thread(ThreadMain,t);
-    //t1.detach();
+    // auto t1 = std::thread(ThreadMain,t);
+    // t1.detach();
 }
