@@ -1,5 +1,6 @@
 #include <vector>
 #include <algorithm>
+#include<bits/stdc++.h>
 using namespace std;
 struct TreeNode
 {
@@ -12,7 +13,7 @@ struct TreeNode
 };
 void dfs(TreeNode *root, int target, int *t, vector<int> *s)
 {
-    int count=0;
+        int count=0;
     for (auto i = (*s).begin(); i != (*s).end(); i++)
     {
         count+=*i;
