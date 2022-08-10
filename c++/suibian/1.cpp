@@ -1,6 +1,8 @@
 #include <iostream>
 #include <future>
+#include <memory>
 #include <thread>
+#include <memory.h>
 
 int fun(int x, std::promise<int>& p) {
 	x++;
@@ -9,7 +11,20 @@ int fun(int x, std::promise<int>& p) {
 	std::cout << std::this_thread::get_id() << std::endl;
 	return x;
 }
+class A{
+public:
+	A();
+	virtual ~A()=0;
+	virtual int mat(int t)=0;
 
+};
+class B : public A{
+public:
+	B();
+	virtual ~B()=0;
+private:
+	std::shared_ptr<>
+};
 
 int main()
 {
