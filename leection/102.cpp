@@ -1,5 +1,6 @@
 #include <bits/stdc++.h>
 #include <cstddef>
+#include <deque>
 #include <vector>
 using namespace std;
 struct TreeNode {
@@ -23,25 +24,28 @@ public:
         if (!root) {
             return rlt;
         }
-        vector<vector<TreeNode *>> s;
+        deque<vector<TreeNode *>> s;
         vector<vector<int>> ssn;
         vector<int> sn;
-        if (!s.empty())
-         {
-            for (auto i : s) {
+        while(!s.empty()) {
+            auto i=s.front();
+            s.pop_front();
                 vector<TreeNode *> n;
                 sn.clear();
                 for (auto q : i) {
-                    sn.emplace_back(q);
-                    if (q->left) {
+                    sn.emplace_back(q->val);
+                    if (q->left!=nullptr) {
                         n.emplace_back(q->left);
-                    } else if (q->right) {
+                    } else if (q->right!=nullptr) {
                         n.emplace_back(q->right);
                     }
                 }
+                s.emplace_back(n);
                 ssn.emplace_back(sn);
-            }
         }
         return ssn;
     }
 };
+int main(){
+    
+}
