@@ -43,7 +43,5 @@ int main(){
     vector<int> st{1,2,3};
     t.search(st,1);
     deque<int> ss;
-    ss.push_back()
-    ss.pop_front();
     return 0;
 }
