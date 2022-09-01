@@ -39,7 +39,7 @@ int main(int argc, char *argv[]) {
 
     // 4. 依次准备 4 个 SQE 读请求，指定将随后读入的数据写入 iovecs 
     struct io_uring_sqe *sqe;
-    offset = 0;
+    int offset = 0;
     i = 0;
     do {
         sqe = io_uring_get_sqe(&ring);  // 获取可用 SQE
