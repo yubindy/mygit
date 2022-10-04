@@ -1,8 +1,21 @@
-#include<bits/stdc++.h>
+#include <bits/stdc++.h>
 using namespace std;
-int main(){
-    std::unordered_map<int,int> p;
-    std::multimap<int,int> s;
-    s.begin();
+class Aty {
+public:
+    Aty(int a) {
+        a_=a;
+    }
+    Aty(int a, int b) {
+        b=b_;
+        Aty(a);
+    }
+
+private:
+    int a_;
+    int b_;
+};
+
+int main() {
+    Aty(3,2);
     return 0;
 }
