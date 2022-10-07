@@ -18,4 +18,8 @@ public:
     }
 };
 int main() {
+    std::list<int> nlist;
+    std::map<int,int> sl;
+    sl.erase
+    auto s=nlist.begin();
 }
