@@ -1,25 +1,10 @@
-#include <bits/stdc++.h>
-class Solution {
-public:
-    int cuttingRope(int n) {
-        if (n < 2) {
-            return 0;
-        }
-        vector<int> num(n + 1);
-        int t = 0, st = 0;
-        for (int i = 2; i <= n; i++) {
-            t = 0;
-            for (int j = 1; j < i; j++) {
-                t = max(t, max((i - j) * j, j * num[i - j]));
-            }
-            num[i] = t;
-        }
-        return num[n];
-    }
-};
+#include <string>
+#include <string_view>
 int main() {
-    std::list<int> nlist;
-    std::map<int,int> sl;
-    sl.erase
-    auto s=nlist.begin();
+    std::string_view pt("123456");
+    std::stirng pp(pt);
+    printf("view:%d true:%d", pt, pp);
+    pp[3] = '9';
+    printf("view:%d true:%d", pt, pp);
+    return 0;
 }
