@@ -3,42 +3,37 @@ using namespace std;
 
 class LRUCache {
 public:
-    LRUCache(int capacity):cpa(capacity),size(0),llist(),lmap() {
+    LRUCache(int capacity) {
+        size=capacity;
     }
-
+    
     int get(int key) {
-        if (lmap.find(key) == lmap.end()) {
+        auto p=mp.find(key);
+        if(p==mp.end()){
             return -1;
         }
-        int n=lmap[key]->second;
-        llist.erase(lmap[key]);
-        llist.emplace_front(make_pair(key,n));
-        lmap[key] = llist.begin();
-        return lmap[key]->second;
+        lt.splice(lt.begin(),lt,p->second);
+        return p->second->second;
     }
-
+    
     void put(int key, int value) {
-        if (lmap.find(key) != lmap.end()) {
-            llist.erase(lmap[key]);
-            llist.emplace_front(make_pair(key, value));
-            lmap[key] = llist.begin();
-        } else {
-            llist.emplace_front(make_pair(key, value));
-            lmap[key] = llist.begin();
-            size++;
-            if (size > cpa) {
-                lmap.erase(llist.back().first);
-                llist.pop_back();
-                size--;
+        auto p=mp.find(key);
+        if(p==mp.end()){
+            lt.push_front(make_pair(key,value));
+            mp[key]=lt.begin();
+            if(size<lt.size()){
+                mp.erase(lt.back().first);
+                lt.pop_back();
             }
+            return;
         }
+       p->second->second=value;
+       lt.splice(lt.begin(),lt,p->second);
     }
-
 private:
-    int cpa;
     int size;
-    list<pair<int, int>> llist;
-    map<int, list<pair<int, int>>::iterator> lmap;
+    list<pair<int,int>> lt;
+    unordered_map<int,list<pair<int,int>>::iterator> mp;
 };
 
 
