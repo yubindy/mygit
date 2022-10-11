@@ -15,8 +15,8 @@ public:
             rul.emplace_back(path);
             return;
         }
-        for (int i = startindex; i < can.size() && can[i] < target; i++) {
-            if (i > 0 && can[i] == can[1 - 1] && !used[i - 1]) {
+        for (int i = startindex; i < can.size() && sum + can[i] <= target; i++) {
+            if (i > 0 && can[i] == can[i - 1] && used[i - 1] == false) {
                 continue;
             }
             used[i] = true;
@@ -34,4 +34,7 @@ private:
     vector<int> path;
 };
 int main() {
+    vector<int> p{2, 5, 2, 1, 2};
+    Solution t;
+    t.combinationSum2(p, 5);
 }
