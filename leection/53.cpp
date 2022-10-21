@@ -1,19 +1,21 @@
-#include<bits/stdc++.h>
+#include <bits/stdc++.h>
 using namespace std;
 class Solution {
 public:
-    int maxSubArray(vector<int>& nums) {
-        vector<int> s(nums.size(),0);
-        s[0]=nums[0];
-        int max=nums[0];
-        for(int i=1;i<nums.size();i++){
-            if(s[i-1]+nums[i]>nums[i]){
-            s[i]=s[i-1]+nums[i];
-            }else{
-                s[i]=nums[i];
-            }
-            max=max>s[i]?max:s[i];
-        } 
-        return max;
+    int maxSubArray(vector<int> &nums) {
+        vector<int> dp(nums.size()+1, 0);
+        dp[0] = 0;
+        int maxs =0;
+        for (int i = 0; i < nums.size(); i++) {
+            dp[i + 1] = max(dp[i] + nums[i], nums[i]);
+            maxs = max(maxs, dp[i + 1]);
+        }
+        return maxs;
     }
 };
+int main() {
+    Solution t;
+    vector<int> pt{5, 4, -1, 7, 8};
+    t.maxSubArray(pt);
+    return 0;
+}
