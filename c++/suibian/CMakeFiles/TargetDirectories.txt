@@ -1,3 +1,0 @@
-/home/yubtin/codes/mygit/c++/suibian/CMakeFiles/example.dir
-/home/yubtin/codes/mygit/c++/suibian/CMakeFiles/edit_cache.dir
-/home/yubtin/codes/mygit/c++/suibian/CMakeFiles/rebuild_cache.dir
