@@ -1,0 +1,1 @@
+/usr/bin/c++ -L/usr/local/opt/llvm/lib CMakeFiles/example.dir/example.cpp.o -o example  /usr/lib/x86_64-linux-gnu/libspdlog.so.1.9.2 /usr/local/lib/libfmt.a 

@@ -94,7 +94,21 @@
         "libgen.h": "c",
         "codecvt": "cpp",
         "source_location": "cpp",
-        "coroutine": "cpp"
+        "coroutine": "cpp",
+        "csetjmp": "cpp",
+        "csignal": "cpp",
+        "any": "cpp",
+        "barrier": "cpp",
+        "charconv": "cpp",
+        "cuchar": "cpp",
+        "regex": "cpp",
+        "latch": "cpp",
+        "ranges": "cpp",
+        "scoped_allocator": "cpp",
+        "span": "cpp",
+        "syncstream": "cpp",
+        "typeindex": "cpp",
+        "valarray": "cpp"
     },
     "code-runner.executorMap": {
         "javascript": "node",
