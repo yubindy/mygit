@@ -2,19 +2,59 @@
 using namespace std;
 class Solution {
 public:
-    vector<int> spiralOrder(vector<vector<int>>& matrix) {
-        int n=matrix.size(),m=matrix[0].size();
-        if(n==0&&m==0)
-        int all=m*j;
-        vector<int> p;
-        for(int i=0;i<m;i++){
-            for(int j=0;j<n;j++){
-                if(p.emplace_back(matrix[i][j]));
-                aall++;
-            }
+    vector<int> spiralOrder(vector<vector<int>> &matrix) {
+        int n = matrix.size(), m = matrix[0].size();
+        int i = 0, j = 0;
+        if (n == 0) {
+            return vector<int>();
         }
-        return matrix;
-
+        int all = m * n, sx = 0, sy = 0;
+        vector<int> p;
+        while (i >= 0 && i < n && j >= 0 && j < m) {
+            while (i < n - sx) {
+                p.emplace_back(matrix[j][i]);
+                printf("a %d %d size %d all %d\n", j, i, p.size(), all);
+                if (p.size() == all) {
+                    return p;
+                }
+                i++;
+            }
+            i--;
+            j++;
+            sy++;
+            while (j < m - sy + 1) {
+                p.emplace_back(matrix[j][i]);
+                printf("b %d %d size %d all %d\n", j, i, p.size(), all);
+                if (p.size() == all) {
+                    return p;
+                }
+                j++;
+            }
+            j--;
+            i--;
+            sx++;
+            while (i >= sx - 1) {
+                p.emplace_back(matrix[j][i]);
+                printf("c %d %d size %d all %d\n", j, i, p.size(), all);
+                if (p.size() == all) {
+                    return p;
+                }
+                i--;
+            }
+            i++;
+            j--;
+            while (j >= sy) {
+                p.emplace_back(matrix[j][i]);
+                printf("d %d %d size %d all %d\n", j, i, p.size(), all);
+                if (p.size() == all) {
+                    return p;
+                }
+                j--;
+            }
+            j++;
+            i++;
+        }
+        return p;
     }
 };
 int main() {
