@@ -1,14 +1,13 @@
-#include <iostream>
-#include <string>
-#include <string_view>
+#include <bits/stdc++.h>
+using namespace std;
 
 int main() {
-    std::string cstr("yangxunwu");
-    std::string_view stringView1(cstr.data());
-    std::string_view stringView2;
-    std::cout << "stringView1: " << stringView1
-              << ", size view1 " << sizeof(stringView1)
-              << "stringView2" << stringView2
-              << ", size view2 " << sizeof(stringView2) << std::endl;
+    std::string a("12345");
+    char *b = a.data();
+    size_t c = 1000000;
+    std::memcpy(b + a.size(), (char *)(&c), sizeof(c));
+    printf("%s\n", b);
+    printf("%s\n", b + a.size());
+    printf("hhh- %d", *(size_t *)(b + a.size()));
     return 0;
 }
