@@ -20,32 +20,33 @@ struct TreeNode {
 class Solution {
 public:
     vector<vector<int>> levelOrder(TreeNode *root) {
-        vector<vector<int>> rlt;
+        vector<vector<int>> rul;
         if (!root) {
-            return rlt;
+            return rul;
         }
-        deque<vector<TreeNode *>> s;
-        vector<vector<int>> ssn;
-        vector<int> sn;
-        while(!s.empty()) {
-            auto i=s.front();
-            s.pop_front();
-                vector<TreeNode *> n;
-                sn.clear();
-                for (auto q : i) {
-                    sn.emplace_back(q->val);
-                    if (q->left!=nullptr) {
-                        n.emplace_back(q->left);
-                    } else if (q->right!=nullptr) {
-                        n.emplace_back(q->right);
-                    }
-                }
-                s.emplace_back(n);
-                ssn.emplace_back(sn);
+        deque<TreeNode *> p;
+        p.emplace_back(root);
+        p.emplace_back(root);
+        vector<int> sp;
+        while (!p.empty()) {
+            auto s = p.front();
+            p.pop_front();
+            sp.emplace_back(s);
+            if (s->left) {
+                p.emplace_back(s->left);
+            }
+            if (s->right) {
+                p.emplace_back(s->right);
+            }
+            if (s == p.front()) { // head
+                p.emplace_back(p.back());
+                p.pop_front();
+                rul.emplace_back(std::move(sp));
+                vector<int> sp;
+            }
         }
-        return ssn;
+        return rul;
     }
 };
-int main(){
-    
+int main() {
 }
