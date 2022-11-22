@@ -2,36 +2,45 @@
 using namespace std;
 class Solution {
 public:
-    pair<int, int> Aroundstring(const string &s, int left, int right) {
-        while (right < s.size() && left >= 0 && s[right] == s[left]) {
-            right++;
-            left--;
+    pair<int,int> hui(const string&s,int left,int right){
+        printf("debug  %d %d\n",right,left);
+        while(left>0&&right<s.size()){
+            if(s[left]==s[right]){
+                right++;
+                left--;
+            }else{
+                return make_pair(left+1,right-1);
+            }
         }
-        return pair<int, int>(left+1, right-1);
+        if(s[left]==s[right]){
+        printf("debug  %d %d\n",right,left);
+        return make_pair(left,right);
+        }
+        return make_pair(left+1,right-1);
     }
     string longestPalindrome(string s) {
-        int start = 0, end = 0;
-        int n = s.size();
-        for (int i = 0; i < n; i++) {
-            auto p1 = Aroundstring(s, i, i);
-            auto p2 = Aroundstring(s, i, i + 1);
-            if (p1.second - p1.first > (end - start)) {
-                printf("start1 :%d end1 :%d\n", p1.first, p1.second);
-                start = p1.first;
-                end = p1.second;
+        int beg=0,end=0;
+        for(int i=1;i<s.size();i++){
+            auto a=hui(s,i,i);
+            if(a.second-a.first>end-beg){
+                beg=a.first;
+                end=a.second;
+                printf("1 i=%d %d %d\n",i,beg,end);
             }
-            if (p2.second - p2.first > (end - start)) {
-                printf("start2 :%d end2 :%d\n", p2.first, p2.second);
-                start = p2.first;
-                end = p2.second;
+            auto b=hui(s,i,i+1);
+            printf("debug i=%d %d %d\n",i,b.second,b.first);
+            if(b.second-b.first>end-beg){
+                beg=b.first;
+                end=b.second;
+                printf("2 i=%d %d %d\n",i,beg,end);
             }
         }
-        return s.substr(start, end - start + 1);
+        return s.substr(beg,end-beg+1);
     }
 };
 int main() {
     Solution p;
-    string s("123454321");
+    string s("bb");
     printf("%s", p.longestPalindrome(s).data());
     return 0;
 }
