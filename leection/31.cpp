@@ -3,18 +3,15 @@ using namespace std;
 class Solution {
 public:
     void nextPermutation(vector<int> &nums) {
-        vector<int> p(nums);
-        int mn = nums.size() - 1;
-        int n = nums[mn];
-        sort(p.begin(), p.end());
         for (int i = nums.size() - 1; i >= 1; i--) {
-            if (n > nums[i]) {
-                mn = i;
-                n = nums[i];
-            }
-            if (n > nums[i - 1] || nums[i] > nums[i - 1]) {
-                swap(nums[mn], nums[i - 1]);
-                swap(nums[i], nums[mn]);
+            if(nums[i]>nums[i-1]){
+                for(int j=nums.size()-1;j>=i;j--){
+                    if(nums[j]>nums[i-1]){
+                        swap(nums[i-1],nums[j]);
+                    break;
+                    }
+                }
+                reverse(nums.begin()+i,nums.end());
                 return;
             }
         }
@@ -22,3 +19,8 @@ public:
         return;
     }
 };
+int main(){
+    Solution p;
+    std::vector<int> sp{1,3,2};
+    p.nextPermutation(sp);
+}
