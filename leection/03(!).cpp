@@ -1,3 +1,5 @@
+#include"leection.h"
+using namespace std;
 class Solution {
 public:
     int lengthOfLongestSubstring(string s) {
@@ -14,3 +16,8 @@ public:
         }
         return maxs;
     }
+};
+int main() {
+  Solution t;
+  printf("%d", t.lengthOfLongestSubstring("abcabcbb"));
+}
