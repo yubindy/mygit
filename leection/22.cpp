@@ -10,14 +10,10 @@ void func(vector<string>& rul,int l1,int r1,string p,int n){
         return;
     }
     if(l1<n){
-        p+='(';
-        l1++;
-        func(rul,l1,r1,p,n);
+        func(rul,l1+1,r1,p+'(',n);
     }
     if(l1>r1){
-        p+=')';
-        r1++;
-        func(rul,l1,r1,p,n);
+        func(rul,l1,r1+1,p+')',n);
     }
     return;
 }
@@ -30,5 +26,7 @@ void func(vector<string>& rul,int l1,int r1,string p,int n){
     }
 };
 int main(){
-    
+    Solution t;
+    auto p=t.generateParenthesis(3);
+    return 0;
 }
