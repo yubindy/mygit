@@ -17,18 +17,15 @@ public:
         }
         vals.emplace_back(root->val);
         val=root->val+val;
-        printf("val:%d + num:%d bevcome %d\n",root->val,val-root->val,val);
         if(root->left){
             dfs(root->left,target,vals,val);
         }
         if(root->right){
-            dfs(root->left,target,vals,val);
+            dfs(root->right,target,vals,val);
         }
         if(root->left==nullptr&&root->right==nullptr){
             if(val==target){
                 rul.emplace_back(vals);
-            }else{
-                printf("RUL:%d\n",val);
             }
         }
     }
