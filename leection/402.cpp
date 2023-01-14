@@ -6,24 +6,36 @@
 class Solution {
 public:
     string removeKdigits(string num, int k) {
+        bool flag;
         while(k--){
-            string b=num;
-            long long mins=atoll(num.c_str());
+            flag=false;
+            int a=num[0]-'0';
+            int b;
             char p;
-           for(auto i=b.begin();i!=b.end();i++){
-                p=*i;
-                i=b.erase(i);
-                mins=min(atoll(b.c_str()),mins);
-                i=b.insert(i,p);
+            for(auto i=++num.begin();i!=num.end();i++){
+                b=*i-'0';
+                if(a>b){
+                    flag=true;
+                    i=num.erase(i-1);
+                    break;
+                }
+                a=b;
            }
-           num=std::to_string(mins);
+           if(!flag){
+               num.erase(num.end()-1);
+           }
+        }
+        for(auto i=num.begin();i!=num.end();i++){
+            if(*i=='0'){
+                i=num.erase(i);
+                i--;
+            }else{
+                return num;
+            }
+        }
+        if(num.empty()){
+            num="0";
         }
         return num;
     }
 };
-int main(){
-    Solution p;
-    string rul=p.removeKdigits("67587587", 3);
-    printf("%s",rul.c_str());
-    return 0;
-}
