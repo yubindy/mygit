@@ -1,10 +1,10 @@
 #include "leection.h"
 class Solution {
 public:
-    vector<string> restoreIpAddresses(string s) {
-        
+    bool wordBreak(string s, vector<string>& wordDict) {
+
     }
 };
 int main(){
-    
+
 }
