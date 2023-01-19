@@ -5,13 +5,10 @@ public:
         if(!root){
         return 0;
         }
-        int l,r;
-        if(root->left){
-            l=diameterOfBinaryTree
-        }
-        if(root->right){
-
-        }
+        int l=0,r=0;
+        l=diameterOfBinaryTree(root->left);
+        r=diameterOfBinaryTree(root->right);
+        return l>r?l+1:r+1;
     }
 };
 int main(){
