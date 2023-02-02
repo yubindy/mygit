@@ -21,5 +21,4 @@ private:
 };
 int main() {
     vector<int> t;
-    max_element()
 }
