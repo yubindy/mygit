@@ -10,7 +10,7 @@ public:
         vector<int> t(code);
         for(auto it=code.begin();it!=code.end();it++){
             *it=0;
-            if(k>0){
+            if(likely(k>0)){
                 *it=t[(i+1)%n]+t[(i+2)%n]+t[(i+3)%n];
             }else if(k<0){
                 for(int inx=1;inx<=0-k;i++){
