@@ -1,22 +1,28 @@
 #include "leection.h"
 class Solution {
 public:
-    int minSubArrayLen(int target, vector<int>& nums) {
-        int left=-1,right=0;
-        int len=0,rul=0;
-        while(right<nums.size()-1){
-            if(nums[right+1]>=nums[right]+1||nums[right+1]<=nums[right]-1){
-                rul+=nums[right];
-                if(rul>=target){
-                    len=min(len,right-left);
-                }
-            }else{
-                left=right;
-                rul=0;
+    vector<int> dailyTemperatures(vector<int> &temperatures) {
+        stack<int> fnk;
+        int num = 0;
+        for (int i = 0; i < temperatures.size(); i++) {
+            while (!fnk.empty() && temperatures[i] > temperatures[fnk.top()]) {
+                temperatures[fnk.top()] = i-fnk.top();
+                fnk.pop();
             }
-            right++;
-
+            fnk.push(i);
         }
-        return len; 
+        while (!fnk.empty()) {
+            temperatures[fnk.top()] = 0;
+            fnk.pop();
+        }
     }
 };
+int main() {
+    Solution t;
+    vector<int> p{89,62,70,58,47,47,46,76,100,70};
+    t.dailyTemperatures(p);
+    for (auto i : p) {
+        printf("%d ", i);
+    }
+    return 0;
+}
