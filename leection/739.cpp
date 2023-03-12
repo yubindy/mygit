@@ -1,4 +1,5 @@
 #include "leection.h"
+#include <queue>
 class Solution {
 public:
     vector<int> dailyTemperatures(vector<int>& temperatures) {
@@ -20,5 +21,6 @@ public:
     }
 };
 int main(){
-
+    queue<int> p;
+    p.push
 }
