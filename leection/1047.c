@@ -1,7 +1,9 @@
 #include<stdio.h>
+#include<string.h>
+#include<stdlib.h>
 char * removeDuplicates(char * S){
    int n=strlen(S)+1;
-   char *t=malloc(sizeof(char)*n);
+   char *t=(char*)malloc(sizeof(char)*n);
    int a=0;
    for(int i=0;i<strlen(S);i++)
    {
