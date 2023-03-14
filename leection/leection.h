@@ -14,6 +14,24 @@ struct ListNode {
     }
 };
 
+class Node {
+public:
+    int val;
+    vector<Node *> children;
+
+    Node() {
+    }
+
+    Node(int _val) {
+        val = _val;
+    }
+
+    Node(int _val, vector<Node *> _children) {
+        val = _val;
+        children = _children;
+    }
+};
+
 struct TreeNode {
     int val;
     TreeNode *left;
@@ -45,12 +63,12 @@ TreeNode *CreateTree(vector<int> vals) { //-1为null
             if (2 * i < vals.size()) {
                 p[i]->left = p[2 * i];
             } else {
-                p[i]->left=nullptr;
+                p[i]->left = nullptr;
             }
-            if (2 * i+1< vals.size()) {
+            if (2 * i + 1 < vals.size()) {
                 p[i]->right = p[2 * i + 1];
             } else {
-                p[i]->right=nullptr;
+                p[i]->right = nullptr;
             }
         }
     }
